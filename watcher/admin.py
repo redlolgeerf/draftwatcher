@@ -1,3 +1,9 @@
-from django.contrib import admin
+# -*- coding: utf-8 -*-
 
-# Register your models here.
+''' admin module '''
+
+from django.contrib import admin
+from watcher.models import DraftLaw, UserProfile
+
+admin.site.register(DraftLaw)
+admin.site.register(UserProfile)

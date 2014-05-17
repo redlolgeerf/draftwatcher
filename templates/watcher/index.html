@@ -1,0 +1,18 @@
+{% extends 'watcher/base.html' %}
+
+{% block body_block %}
+
+    {% if drafts %}
+        {% for draft in drafts %}
+            <ul>
+                <li><a href="/draft/{{ draft.number }}/">{{ draft.number }}</a></li>
+            </ul>
+        {% endfor %}
+    {% else %}
+        <p>Тут пока ничего нет</p>
+    {% endif %}
+
+    <a href="/add_draft/">Добавить законопроект</a>
+    <a href="/update/">Обновить</a>
+
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'watcher/base.html' %}
+
+{% block body_block %}
+
+    {% if draft %}
+    <h1> {{ draft.title }} </h1>
+    <p> {{ draft.number }} </p>
+    {% else %}
+        <p>Тут пока ничего нет</p>
+    {% endif %}
+
+    {% if history %}
+    <ul>
+        {% for day in history %}
+        <li>{{ day }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+{% endblock %}

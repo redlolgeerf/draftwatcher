@@ -49,16 +49,21 @@ class DraftLaw(models.Model):
 
     def update(self):
         ''' method updates draft, if anything has changed'''
-        *__, span, h = parse(self.url)
+        try:
+            *__, span, h = parse(self.url)
 
-        if self.span != span:
-            self.span = span
+            if self.span != span:
+                self.span = span
 
-        if (self.history and 
-                (deserialize_history(self.history) != h) or
-                not self.history):
-            self.history = serialize_history(h)
-            self.curent_status = h[-1]
+            if (self.history and 
+                    (deserialize_history(self.history) != h) or
+                    not self.history):
+                self.history = serialize_history(h)
+                self.curent_status = h[-1]
+
+            self.updated = datetime.now()
+        except AttributeError:
+            pass
 
 class UserProfile(models.Model):
     ''' user profile '''
@@ -86,7 +91,8 @@ def parse_header(h):
     else:
         status = None
     if status:
-        name = h.p.text.replace('\n', ' ')[:-(len(status) + 2)]
+        name = h.p.text.replace('\n', ' ')
+        name = name.replace(status, '')
     else:
         name = h.p.text.replace('\n', ' ')
     name = name.strip()

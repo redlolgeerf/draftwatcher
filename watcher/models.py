@@ -68,10 +68,10 @@ class DraftLaw(models.Model):
 class UserProfile(models.Model):
     ''' user profile '''
     user = models.OneToOneField(User)
-    drafts_watched = models.ManyToManyField(DraftLaw)
+    drafts_watched = models.ManyToManyField(DraftLaw, blank=True)
 
     def __str__(self):
-        return self.username
+        return self.user.username
 
 
 def crop_between(text, start, stop=None):

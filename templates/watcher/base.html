@@ -17,6 +17,14 @@
         <div>
             {% block body_block %}{% endblock %}
         </div>
+        
+        {% if user.is_authenticated %}
+        <li class="navbar-text">Welcome, {{ user.username }}!</li>
+        <li><a href="/logout/">Logout</a></li>
+        {% else %}
+        <li><a href="/register/">Register here!</a></li>
+        <li><a href="/login/">Login</a></li>
+        {% endif %}
 
         <footer>
             <div class="container">

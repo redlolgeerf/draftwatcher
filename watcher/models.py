@@ -30,6 +30,10 @@ class DraftLaw(models.Model):
     def __str__(self):
         return self.number
 
+    def make_url(self):
+        magic_url = 'asozd2.duma.gov.ru/main.nsf/(Spravka)?OpenAgent&RN='
+        self.url = 'http://' + magic_url + self.number
+
     def populate(self):
         ''' method which downloads a respective page, parse it and populate
         db with draft law atributes'''
@@ -110,11 +114,12 @@ def download(uri):
 
 def parse(uri):
     page = download(uri)
-    # diagnose(page)
     soup = BeautifulSoup(page)
     header = soup.find('div', class_='ecard-header')
     history_box = soup.find('div', class_='tab tab-act')
 
+    if not header and history_box:
+        raise AttributeError('Законопроект не найден')
     title, number, status = parse_header(header)
     history = parse_history(history_box)
 

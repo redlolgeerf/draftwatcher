@@ -55,8 +55,14 @@ def add_draft(request):
 
         if form.is_valid():
             draft = form.save(commit=False)
-            draft.populate()
-            draft.save()
+            draft.make_url()
+            try:
+                draft.populate()
+                draft.save()
+            except AttributeError:
+                form._errors["number"] = form.error_class(['Законопроект не найден'])
+                return render_to_response('watcher/add_draft.html',
+                        context_dict, context)
 
             return index(request)
         else:

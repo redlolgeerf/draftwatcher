@@ -2,6 +2,7 @@
 
 ''' view module '''
 
+from datetime import datetime
 from django.shortcuts import render
 
 from django.http import HttpResponse, HttpResponseRedirect
@@ -11,7 +12,7 @@ from django.shortcuts import render_to_response
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
-from watcher.models import DraftLaw, UserProfile
+from watcher.models import DraftLaw, UserProfile, UserData
 from watcher.models import serialize_history, deserialize_history
 from watcher.forms import AddDraftForm, UserForm
 
@@ -52,16 +53,28 @@ def add_draft(request):
     if request.method == 'POST':
         form = AddDraftForm(request.POST)
         context_dict['form'] = form
+        data = form['number']
+
+        try:
+            draft = DraftLaw.objects.get(number=data)
+            add_draft_to_user(request, draft)
+            return index(request)
+
+        except DraftLaw.DoesNotExist:
+            pass
 
         if form.is_valid():
             draft = form.save(commit=False)
+
             draft.make_url()
             try:
                 draft.populate()
                 draft.save()
+                add_draft_to_user(request, draft)
             except AttributeError:
                 form._errors["number"] = form.error_class(
                         ['Законопроект не найден'])
+
                 return render_to_response('watcher/add_draft.html',
                         context_dict, context)
 
@@ -145,3 +158,13 @@ def user_logout(request):
 
     return index(request)
 
+def add_draft_to_user(req, draf):
+    '''
+        takes request for user and draft, 
+        adds draft to user through proxy model
+        '''
+    if req.user.is_authenticated():
+        userprofile = req.user.userprofile
+        x = UserData(userprofile=userprofile, draftlaw=draf,
+                date_added=datetime.now())
+        x.save()

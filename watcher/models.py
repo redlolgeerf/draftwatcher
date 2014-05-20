@@ -68,11 +68,20 @@ class DraftLaw(models.Model):
 class UserProfile(models.Model):
     ''' user profile '''
     user = models.OneToOneField(User)
-    drafts_watched = models.ManyToManyField(DraftLaw, blank=True)
+    drafts_watched = models.ManyToManyField(DraftLaw,
+            blank=True, through='UserData')
 
     def __str__(self):
         return self.user.username
 
+class UserData(models.Model):
+    '''
+        a proxy class for relation between UserProfile and DraftLaw
+        '''
+    userprofile = models.ForeignKey(UserProfile)
+    draftlaw = models.ForeignKey(DraftLaw)
+    comment = models.TextField(blank=True)
+    date_added = models.DateTimeField(blank=True)
 
 def crop_between(text, start, stop=None):
     text = str(text)

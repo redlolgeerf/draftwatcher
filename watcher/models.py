@@ -83,6 +83,12 @@ class UserData(models.Model):
     comment = models.TextField(blank=True)
     date_added = models.DateTimeField(blank=True)
 
+class DraftLawNotFound(Exception):
+    def __init__(self, uri):
+        self.uri = uri
+        Exception.__init__(self, 'Законопроект по адрессу %s не найден' % uri)
+
+
 def crop_between(text, start, stop=None):
     text = str(text)
     a = text.find(str(start))
@@ -134,7 +140,7 @@ def parse(uri):
     history_box = soup.find('div', class_='tab tab-act')
 
     if not header and history_box:
-        raise AttributeError('Законопроект не найден')
+        raise DraftLawNotFound(uri)
     title, number, status = parse_header(header)
     history = parse_history(history_box)
 

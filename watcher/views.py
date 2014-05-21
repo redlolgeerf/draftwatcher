@@ -13,7 +13,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
 from watcher.models import DraftLaw, UserProfile, UserData
-from watcher.models import serialize_history, deserialize_history
+from watcher.models import serialize_history, deserialize_history, DraftLawNotFound
 from watcher.forms import AddDraftForm, UserForm
 
 
@@ -25,6 +25,8 @@ def index(request):
 
     drafts = DraftLaw.objects.order_by('-updated')
     context_dict['drafts'] = drafts
+
+    context_dict['userdrafts'] = get_user_drafts(request)
 
     return render_to_response('watcher/index.html',
                               context_dict, context)
@@ -40,7 +42,9 @@ def detail(request, draft_number):
         context_dict['draft'] = draft
         context_dict['history'] = deserialize_history(draft.history)
 
-    except DraftLaw.DoesNotExsist:
+        context_dict['userdrafts'] = get_user_drafts(request)
+
+    except DraftLaw.DoesNotExist:  # FIXME: change to get or 404
         pass
 
     return render_to_response('watcher/detail.html',
@@ -55,30 +59,21 @@ def add_draft(request):
         context_dict['form'] = form
         data = form['number']
 
-        try:
-            draft = DraftLaw.objects.get(number=data)
-            add_draft_to_user(request, draft)
-            return index(request)
-
-        except DraftLaw.DoesNotExist:
-            pass
-
-        if form.is_valid():
+        if form.is_valid():  # FIXME: shall allow to add draft, even if it exists
             draft = form.save(commit=False)
 
-            draft.make_url()
             try:
+                draft.make_url()
                 draft.populate()
                 draft.save()
-                add_draft_to_user(request, draft)
-            except AttributeError:
+                return add_draft_to_user(request, draft.number)
+
+            except DraftLawNotFound:
                 form._errors["number"] = form.error_class(
                         ['Законопроект не найден'])
-
                 return render_to_response('watcher/add_draft.html',
                         context_dict, context)
 
-            return index(request)
         else:
             return render_to_response('watcher/add_draft.html',
                     context_dict, context)
@@ -158,13 +153,43 @@ def user_logout(request):
 
     return index(request)
 
-def add_draft_to_user(req, draf):
+@login_required
+def add_draft_to_user(request, draft_number):
     '''
         takes request for user and draft, 
         adds draft to user through proxy model
         '''
-    if req.user.is_authenticated():
-        userprofile = req.user.userprofile
+    userprofile = request.user.userprofile
+    draf = DraftLaw.objects.get(number=draft_number)
+    try:
+        x = UserData.objects.get(userprofile=userprofile, draftlaw=draf)
+    except UserData.DoesNotExist:
         x = UserData(userprofile=userprofile, draftlaw=draf,
                 date_added=datetime.now())
         x.save()
+    return detail(request, draft_number)
+
+@login_required
+def release_user_from_draft(request, draft_number):
+    '''
+        takes request for user and draft, 
+        removes proxy model between them and
+        the relation itself
+        '''
+    userprofile = request.user.userprofile
+    draf = DraftLaw.objects.get(number=draft_number)
+    try:
+        x = UserData.objects.get(userprofile=userprofile, draftlaw=draf)
+        x.delete()
+    except UserData.DoesNotExist:
+        pass
+    return index(request)
+
+def get_user_drafts(request):
+    if request.user.is_authenticated:
+        try:
+            us = request.user.userprofile
+            userdrafts = DraftLaw.objects.filter(userprofile__pk=us.pk)
+            return userdrafts
+        except AttributeError:
+            return []

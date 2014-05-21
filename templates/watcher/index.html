@@ -5,7 +5,16 @@
     {% if drafts %}
         {% for draft in drafts %}
             <ul>
-                <li><a href="/draft/{{ draft.number }}/">{{ draft.number }}</a></li>
+                <li><a href="/draft/{{ draft.number }}/">{{ draft.number }}</a>
+                {% if user.is_authenticated %}
+                    {% if draft in userdrafts %}
+                    <a href="/release_user_from_draft/{{ draft.number }}/">Отписаться</a>
+                    {% else %}
+                    <a href="/add_draft_to_user/{{ draft.number }}/">Подписаться</a>
+                    {% endif %}
+                {% endif %}
+                </li>
+        
             </ul>
         {% endfor %}
     {% else %}

@@ -37,15 +37,18 @@ class DraftLaw(models.Model):
     def populate(self):
         ''' method which downloads a respective page, parse it and populate
         db with draft law atributes'''
-        self.number, self.title, self.span, h = parse(self.url)
-        if 'в архиве' in self.span.lower():
-            self.archived = True
+        try:
+            self.number, self.title, self.span, h = parse(self.url)
+            if 'в архиве' in self.span.lower():
+                self.archived = True
 
-        self.updated = datetime.now()
+            self.updated = datetime.now()
 
-        if h:
-            self.curent_status = h[-1]
-        self.history = serialize_history(h)
+            if h:
+                self.curent_status = h[-1]
+            self.history = serialize_history(h)
+        except AttributeError:
+            raise DraftLawNotFound(self.number)
 
     def update(self):
         ''' method updates draft, if anything has changed'''
@@ -68,7 +71,7 @@ class DraftLaw(models.Model):
 class UserProfile(models.Model):
     ''' user profile '''
     user = models.OneToOneField(User)
-    drafts_watched = models.ManyToManyField(DraftLaw,
+    draftlaw = models.ManyToManyField(DraftLaw,
             blank=True, through='UserData')
 
     def __str__(self):
@@ -84,9 +87,9 @@ class UserData(models.Model):
     date_added = models.DateTimeField(blank=True)
 
 class DraftLawNotFound(Exception):
-    def __init__(self, uri):
-        self.uri = uri
-        Exception.__init__(self, 'Законопроект по адрессу %s не найден' % uri)
+    def __init__(self, number):
+        self.number = number
+        Exception.__init__(self, 'Законопроект %s не найден' % number)
 
 
 def crop_between(text, start, stop=None):
@@ -139,8 +142,6 @@ def parse(uri):
     header = soup.find('div', class_='ecard-header')
     history_box = soup.find('div', class_='tab tab-act')
 
-    if not header and history_box:
-        raise DraftLawNotFound(uri)
     title, number, status = parse_header(header)
     history = parse_history(history_box)
 

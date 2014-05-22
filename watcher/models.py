@@ -30,6 +30,12 @@ class DraftLaw(models.Model):
     def __str__(self):
         return self.number
 
+    def serialize_history(self, h):
+        self.history = "@".join(h)
+
+    def deserialize_history(self):
+        return self.history.split('@')
+
     def make_url(self):
         magic_url = 'asozd2.duma.gov.ru/main.nsf/(Spravka)?OpenAgent&RN='
         self.url = 'http://' + magic_url + self.number
@@ -46,7 +52,7 @@ class DraftLaw(models.Model):
 
             if h:
                 self.curent_status = h[-1]
-            self.history = serialize_history(h)
+            self.serialize_history(h)
         except AttributeError:
             raise DraftLawNotFound(self.number)
 
@@ -59,9 +65,9 @@ class DraftLaw(models.Model):
                 self.span = span
 
             if (self.history and 
-                    (deserialize_history(self.history) != h) or
+                    (self.deserialize_history() != h) or
                     not self.history):
-                self.history = serialize_history(h)
+                self.serialize_history(h)
                 self.curent_status = h[-1]
 
             self.updated = datetime.now()
@@ -146,10 +152,3 @@ def parse(uri):
     history = parse_history(history_box)
 
     return title, number, status, history
-
-# two functoins to prepare history to be stored in db and to make it list back
-def serialize_history(h):
-    return "@".join(h)
-
-def deserialize_history(h):
-    return h.split('@')

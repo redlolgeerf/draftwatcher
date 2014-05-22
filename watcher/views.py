@@ -3,7 +3,7 @@
 ''' view module '''
 
 from datetime import datetime
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
@@ -13,7 +13,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
 from watcher.models import DraftLaw, UserProfile, UserData
-from watcher.models import serialize_history, deserialize_history, DraftLawNotFound
+from watcher.models import DraftLawNotFound
 from watcher.forms import AddDraftForm, UserForm
 
 
@@ -37,16 +37,10 @@ def detail(request, draft_number):
     context = RequestContext(request)
     context_dict = {}
 
-    try:
-        draft = DraftLaw.objects.get(number=draft_number)
-        context_dict['draft'] = draft
-        context_dict['history'] = deserialize_history(draft.history)
-
-        context_dict['userdrafts'] = get_user_drafts(request)
-
-    except DraftLaw.DoesNotExist:  # FIXME: change to get or 404
-        pass
-
+    draft = get_object_or_404(DraftLaw, number=draft_number)
+    context_dict['draft'] = draft
+    context_dict['history'] = draft.deserialize_history()
+    context_dict['userdrafts'] = get_user_drafts(request)
     return render_to_response('watcher/detail.html',
                               context_dict, context)
 

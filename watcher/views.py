@@ -63,6 +63,7 @@ def add_draft(request):
                     draft.populate()
                     draft.save()
                 except DraftLawNotFound:
+                    draft.delete()
                     form._errors["number"] = form.error_class(
                             ['Законопроект не найден'])
                     return render_to_response('watcher/add_draft.html',

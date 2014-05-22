@@ -90,7 +90,7 @@ class UserData(models.Model):
     userprofile = models.ForeignKey(UserProfile)
     draftlaw = models.ForeignKey(DraftLaw)
     comment = models.TextField(blank=True)
-    date_added = models.DateTimeField(blank=True)
+    date_added = models.DateTimeField(default=datetime.now(), blank=True)
 
 class DraftLawNotFound(Exception):
     def __init__(self, number):

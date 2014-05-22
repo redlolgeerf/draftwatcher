@@ -3,7 +3,7 @@
 ''' view module '''
 
 from datetime import datetime
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
@@ -132,7 +132,7 @@ def user_login(request):
         if user:
             if user.is_active:
                 login(request, user)
-                return index(request)
+                return redirect('index')
             else:
                 return HttpResponse('Your Rango account is disabled')
         else:
@@ -144,8 +144,7 @@ def user_login(request):
 @login_required
 def user_logout(request):
     logout(request)
-
-    return index(request)
+    return redirect('index')
 
 @login_required
 def add_draft_to_user(request, draft_number):
@@ -155,13 +154,8 @@ def add_draft_to_user(request, draft_number):
         '''
     userprofile = request.user.userprofile
     draf = DraftLaw.objects.get(number=draft_number)
-    try:
-        x = UserData.objects.get(userprofile=userprofile, draftlaw=draf)
-    except UserData.DoesNotExist:
-        x = UserData(userprofile=userprofile, draftlaw=draf,
-                date_added=datetime.now())
-        x.save()
-    return detail(request, draft_number)
+    x = UserData.objects.get_or_create(userprofile=userprofile, draftlaw=draf)
+    return redirect('detail', draft_number=draft_number)
 
 @login_required
 def release_user_from_draft(request, draft_number):
@@ -171,13 +165,10 @@ def release_user_from_draft(request, draft_number):
         the relation itself
         '''
     userprofile = request.user.userprofile
-    draf = DraftLaw.objects.get(number=draft_number)
-    try:
-        x = UserData.objects.get(userprofile=userprofile, draftlaw=draf)
-        x.delete()
-    except UserData.DoesNotExist:
-        pass
-    return index(request)
+    draf = get_object_or_404(DraftLaw, number=draft_number)
+    x = get_object_or_404(UserData, userprofile=userprofile, draftlaw=draf)
+    x.delete()
+    return redirect('index')
 
 def get_user_drafts(request):
     if request.user.is_authenticated:

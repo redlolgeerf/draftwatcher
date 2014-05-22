@@ -7,7 +7,7 @@ from watcher.models import DraftLaw
 
 import re
 
-class AddDraftForm(forms.ModelForm):
+class AddDraftForm(forms.Form):
     number = forms.CharField(max_length=10, required=False,
             help_text="Пожалуйста, введите номер законопроекта")
 #    url = forms.URLField(help_text="Введите url", required=False)

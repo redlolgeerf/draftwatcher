@@ -59,21 +59,21 @@ def add_draft(request):
         context_dict['form'] = form
         data = form['number']
 
-        if form.is_valid():  # FIXME: shall allow to add draft, even if it exists
-            draft = form.save(commit=False)
-
-            try:
-                draft.make_url()
-                draft.populate()
-                draft.save()
-                return add_draft_to_user(request, draft.number)
-
-            except DraftLawNotFound:
-                form._errors["number"] = form.error_class(
-                        ['Законопроект не найден'])
-                return render_to_response('watcher/add_draft.html',
-                        context_dict, context)
-
+        if form.is_valid():  # FIXME: deal with not authorised users
+            x = form.cleaned_data['number']
+            draft, created = DraftLaw.objects.get_or_create(number=x)
+            
+            if created:
+                try:
+                    draft.make_url()
+                    draft.populate()
+                    draft.save()
+                except DraftLawNotFound:
+                    form._errors["number"] = form.error_class(
+                            ['Законопроект не найден'])
+                    return render_to_response('watcher/add_draft.html',
+                            context_dict, context)
+            return add_draft_to_user(request, draft.number)
         else:
             return render_to_response('watcher/add_draft.html',
                     context_dict, context)

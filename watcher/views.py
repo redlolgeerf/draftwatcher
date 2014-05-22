@@ -95,26 +95,21 @@ def register(request):
 
     if request.method == 'POST':
         user_form = UserForm(data=request.POST)
+        context_dict['user_form'] = user_form
 
         if user_form.is_valid():
             user = user_form.save()
             user.set_password(user.password)
-
             user.save()
 
             profile = UserProfile()
             profile.user = user
-
             profile.save()
             registered = True
-
-        else:
-            print(user_form.errors)
-
     else:
         context_dict['user_form'] = UserForm()
-        context_dict['registered'] = registered
 
+    context_dict['registered'] = registered
     return render_to_response(
             'watcher/register.html',
             context_dict, context)

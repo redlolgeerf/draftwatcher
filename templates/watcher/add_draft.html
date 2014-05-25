@@ -1,24 +1,26 @@
 {% extends 'watcher/base.html' %}
 
 {% block body_block %}
+
+    <form class="form-signin span8" id="add_draft_form" method="post" action="/add_draft/">
+
     <h1>Добавить законопроект</h1>
     <br/>
+    {% csrf_token %}
 
-    <form id="add_draft_form" method="post" action="/add_draft/">
-        {% csrf_token %}
-        {% for hidden in form.hidden_fields %}
-            {{ hidden }}
-        {% endfor %}
-
+    <div class="row">
+      <div class="col-xs-5">
         {% for field in form.visible_fields %}
-            {{ field.errors }}
-            {{ field.help_text }}<br/>
-            {{ field }}<br />
+        <div class="form-group {% if field.errors %}has-error{% endif %}">
+        {% for error in field.errors %}
+        <span class="help-block">{{ error }}</span>
         {% endfor %}
-
-        <br/>
-        <button type="submit" name="submit">Добавить</button>
-    </form>
-
+        
+        <input type="text" class="form-control" placeholder="Номер законопроекта" name="number" required autofocus>
+        </div>
+        {% endfor %}
+        <button class="btn btn-lg btn-primary" type="submit">Добавить</button>
+      </div>
+    </div>
 {% endblock %}
 

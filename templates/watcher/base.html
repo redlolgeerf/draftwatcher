@@ -40,8 +40,14 @@
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li><a href="/all_drafts/">Все законопроекты</a></li>
-            <li><a href="/add_draft/">Добавить законопроект</a></li>
           </ul>
+
+          <form class="nav navbar-nav navbar-form" role="form" id="add_draft_form" method="post" action="/add_draft/">
+            {% csrf_token %}
+              <input type="text" placeholder="Номер законопроекта" class="form-control" name="number">
+              <button type="submit" class="btn btn-success">Добавить законопроект</button>
+          </form>
+
           <ul class="nav navbar-nav navbar-right">
             <li><a href="/profile/">Профиль</a></li>
             <li><a href='/logout/' class="btn btn-warning">Выйти</a></li>

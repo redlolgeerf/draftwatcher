@@ -2,15 +2,15 @@
 
 {% block body_block %}
         {% if registered %}
-        <p>Thank you for registering.</p>
+        <p>Спасибо за регистрацию</p>
 
-        <p><a href="/rango/login/">Login</a> when you are ready to tango</p>
+        <p><a href="/login/">Авторизуйтесь</a>, когда будете готовы</p>
         {% else %}
 
         <form class="form-signin span8" id="user_form" method="post" action="/register/">
             {% csrf_token %}
 
-            <h2 class="from-signin-heading">Sign up Here</h2>
+            <h2 class="from-signin-heading">Регистрация</h2>
 
             <div class="row">
               <div class="col-xs-5">
@@ -24,7 +24,7 @@
                 class="form-control" placeholder="{{ field.help_text }}" name="{{ field.html_name }}" required autofocus>
                 </div>
                 {% endfor %}
-                <button class="btn btn-lg btn-primary" type="submit">Войти</button>
+                <button class="btn btn-lg btn-primary" type="submit">Зарегистрироваться</button>
               </div>
             </div>
 

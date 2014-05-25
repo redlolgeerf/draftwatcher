@@ -14,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 
 from watcher.models import DraftLaw, UserProfile, UserData
 from watcher.models import DraftLawNotFound
-from watcher.forms import AddDraftForm, UserForm, AddCommentForm
+from watcher.forms import AddDraftForm, RegisterForm, AddCommentForm
 
 
 def index(request):
@@ -106,7 +106,7 @@ def register(request):
     registered = False
 
     if request.method == 'POST':
-        user_form = UserForm(data=request.POST)
+        user_form = RegisterForm(data=request.POST)
         context_dict['user_form'] = user_form
 
         if user_form.is_valid():
@@ -119,7 +119,7 @@ def register(request):
             profile.save()
             registered = True
     else:
-        context_dict['user_form'] = UserForm()
+        context_dict['user_form'] = RegisterForm()
 
     context_dict['registered'] = registered
     return render_to_response(

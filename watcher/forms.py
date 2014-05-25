@@ -24,14 +24,27 @@ class AddDraftForm(forms.Form):
     class Meta:
         fields = ('number', )
 
-class UserForm(forms.ModelForm):
-    username = forms.CharField(help_text="Please enter a username.")
-    email = forms.CharField(help_text="Please enter your email.")
-    password = forms.CharField(widget=forms.PasswordInput(), help_text="Please enter a password.")
+class RegisterForm(forms.ModelForm):
+    username = forms.CharField(help_text="Введите логин.")
+    email = forms.CharField(help_text="Введите email.")
+    password = forms.CharField(widget=forms.PasswordInput(), help_text="Введите пароль.")
+    password_repeat = forms.CharField(widget=forms.PasswordInput(), help_text="Введите пароль ещё раз.")
+
+    def clean(self):
+        cleaned_data = super(RegisterForm, self).clean()
+        password = cleaned_data.get('password')
+        password_repeat = cleaned_data.get('password_repeat')
+
+        if password != password_repeat:
+            msg = "Введённые пароли должны совпадать."
+            self._errors["password"] = self.error_class([msg])
+            del cleaned_data["password"]
+            del cleaned_data["password_repeat"]
+        return cleaned_data
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password']
+        fields = ['username', 'email', 'password', 'password_repeat']
 
 class AddCommentForm(forms.Form):
     comment = forms.CharField(required=False, widget=forms.Textarea)

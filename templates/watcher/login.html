@@ -2,37 +2,25 @@
 
 {% block body_block %}
 
-<div class="container">
-    {% csrf_token %}
-
     {% if bad_details %}
     <p><strong>Your username and/or password were incorrect!</strong></p>
     {% elif disabled_account %}
     <p><strong>Your watcher account is currently disabled; we can't log you in!</strong></p>
     {% endif %}
 
-    <form class="form-signin span4" id="login_form" method="post" action="/login/" role="form">
+    <form id="login_form" method="post" action="/login/" role="form">
+    {% csrf_token %}
       <h2 class="form-signin-heading">Please sign in</h2>
-      <input type="text" class="form-control" placeholder="Имя пользователя" required autofocus>
-      <input type="password" class="form-control" placeholder="Пароль" required>
+    <div class="row">
+      <div class="col-xs-5">
+      <input type="text" class="form-control" placeholder="Логин" name="username" required autofocus>
+      <input type="password" class="form-control" placeholder="Пароль" name="password" required>
       <label class="checkbox">
         <input type="checkbox" value="remember-me"> Запомнить меня
       </label>
-      <button class="btn btn-lg btn-primary btn-block" type="submit">Войти</button>
-    </form>
-</div> <!-- /container -->
-
-    <div class="container">
-    <form class="form-signin span4" id="login_form" method="post" action="/login/">
-        <h2 class="form-signin-heading">Please sign in</h2>
-
-        Username: <input type="text" class="input-block-level" placeholder="Username" name="username" value="" size="50" />
-        Password: <input type="password" class="input-block-level" placeholder="Password" name="password" value="" size="50" />
-        <br />
-
-        <button class="btn btn-primary" type="submit">Sign in</button>
-    </form>
-
+      <button class="btn btn-lg btn-primary" type="submit">Войти</button>
+      </div>
     </div>
-    <!--container -->
+    </form>
+
 {% endblock %}

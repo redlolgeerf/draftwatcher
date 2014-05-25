@@ -25,10 +25,10 @@ class AddDraftForm(forms.Form):
         fields = ('number', )
 
 class RegisterForm(forms.ModelForm):
-    username = forms.CharField(help_text="Введите логин.")
-    email = forms.CharField(help_text="Введите email.")
-    password = forms.CharField(widget=forms.PasswordInput(), help_text="Введите пароль.")
-    password_repeat = forms.CharField(widget=forms.PasswordInput(), help_text="Введите пароль ещё раз.")
+    username = forms.CharField(help_text="Логин")
+    email = forms.CharField(help_text="Email")
+    password = forms.CharField(widget=forms.PasswordInput(), help_text="Пароль")
+    password_repeat = forms.CharField(widget=forms.PasswordInput(), help_text="Введите пароль ещё раз")
 
     def clean(self):
         cleaned_data = super(RegisterForm, self).clean()

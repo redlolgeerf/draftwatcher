@@ -1,28 +1,33 @@
 {% extends 'watcher/base.html' %}
 
 {% block body_block %}
-    <div class="container">
         {% if registered %}
         <p>Thank you for registering.</p>
 
         <p><a href="/rango/login/">Login</a> when you are ready to tango</p>
         {% else %}
 
-        <form class="form-signin span8" id="user_form" method="post" action="/register/" enctype="multipart/form-data">
+        <form class="form-signin span8" id="user_form" method="post" action="/register/">
             {% csrf_token %}
 
             <h2 class="from-signin-heading">Sign up Here</h2>
 
-            {% for field in user_form.visible_fields %}
-                {{ field.errors }}
-                {{ field.help_text }}<br/>
-                {{ field }}<br/>
-            {% endfor %}
+            <div class="row">
+              <div class="col-xs-5">
+                {% for field in user_form.visible_fields %}
+                <div class="form-group {% if field.errors %}has-error{% endif %}">
+                {% for error in field.errors %}
+                <span class="help-block">{{ error }}</span>
+                {% endfor %}
+                
+                <input type="{% if forloop.last %}password{% else %}{% if field.html_name == 'Username' %}text{% else %}{{ field.html_name }}{% endif %}{% endif %}" 
+                class="form-control" placeholder="{{ field.help_text }}" name="{{ field.html_name }}" required autofocus>
+                </div>
+                {% endfor %}
+                <button class="btn btn-lg btn-primary" type="submit">Войти</button>
+              </div>
+            </div>
 
-            <br/>
-            <input class="btn btn-primary" type="submit" name="submit" value="Register" />
         </form>
         {% endif %}
-
-    </div>
 {% endblock %}

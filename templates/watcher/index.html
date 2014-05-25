@@ -14,7 +14,9 @@
                     <p class="list-group-item-text">{{ draft.title }}</p>
                     <div class="row">
                         <div class="col-xs-5">
-                            <p class="list-group-item-text">{{ draft.span }}</p>
+                            <p class="list-group-item-text">
+                            </br><strong>{{ draft.span }}</strong>
+                            </p>
                         </div>
                         <div class="col-xs-5">
                             {% if user.is_authenticated %}

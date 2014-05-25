@@ -4,7 +4,7 @@
 
     {% if draft %} 
     <h3>Законопроект № {{ draft.number }}</h3>
-    <p> {{ draft.title }} </p>
+    <p> {{ draft.title }}</p><br />
     {% else %}
         <p>Тут пока ничего нет</p>
     {% endif %}
@@ -35,7 +35,7 @@
         {% endfor %}
 
         <br/>
-        <button type="submit" name="submit">Добавить</button>
+        <button class="btn btn-xs btn-primary" type="submit" name="submit">Добавить</button>
     </form>
         <a href="/release_user_from_draft/{{ draft.number }}/">Отписаться</a>
         {% else %}

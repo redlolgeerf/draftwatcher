@@ -7,23 +7,23 @@
         <div class="list-group">
             {% for draft in drafts %}
             <div class='list-group-item'>
-                <a href="/draft/{{ draft.0.number }}/" class="list-group-item">
-                  <h4 class="list-group-item-heading">Законопроект № {{ draft.0.number }}</h4>
+                <a href="/draft/{{ draft.number }}/" class="list-group-item">
+                  <h4 class="list-group-item-heading">Законопроект № {{ draft.number }}</h4>
                 </a>
                 <div class="list-group-item">
-                    <p class="list-group-item-text">{{ draft.0.title }}</p>
+                    <p class="list-group-item-text">{{ draft.title }}</p>
                     <div class="row">
                         <div class="col-xs-8">
-                            <div class="list-group-item-text alert {% if draft.1 %}alert-success{% endif %}">
-                                <strong>{{ draft.0.span }}</strong>
+                            <div class="list-group-item-text alert">
+                                <strong>{{ draft.span }}</strong>
                             </div>
                         </div>
                         <div class="col-xs-3">
                             {% if user.is_authenticated %}
-                                {% if draft.0 in userdrafts %}
-                                <a href="/release_user_from_draft/{{ draft.0.number }}/" class="btn btn-warning">Отписаться</a>
+                                {% if draft in userdrafts %}
+                                <a href="/release_user_from_draft/{{ draft.number }}/" class="btn btn-warning">Отписаться</a>
                                 {% else %}
-                                <a href="/add_draft_to_user/{{ draft.0.number }}/" class="btn btn-success">Подписаться</a>
+                                <a href="/add_draft_to_user/{{ draft.number }}/" class="btn btn-success">Подписаться</a>
                                 {% endif %}
                             {% endif %}
                         </div><!-- coll-xs-5 -->

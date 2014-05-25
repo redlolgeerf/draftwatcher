@@ -23,12 +23,26 @@ def index(request):
     context = RequestContext(request)
     context_dict = {}
 
+    drafts = request.user.userprofile.get_user_drafts()
+
+    context_dict['userdrafts'] = drafts
+
+    watched = [request.user.userprofile.is_watched(draft) for draft in drafts]
+    context_dict['drafts'] = zip(drafts, watched)
+
+    return render_to_response('watcher/index.html',
+                              context_dict, context)
+
+def all_drafts(request):
+    context = RequestContext(request)
+    context_dict = {}
+
     drafts = DraftLaw.objects.order_by('-updated')
     context_dict['drafts'] = drafts
 
-    context_dict['userdrafts'] = get_user_drafts(request)
+    context_dict['userdrafts'] = request.user.userprofile.get_user_drafts()
 
-    return render_to_response('watcher/index.html',
+    return render_to_response('watcher/all_drafts.html',
                               context_dict, context)
 
 def detail(request, draft_number):
@@ -38,9 +52,10 @@ def detail(request, draft_number):
     context_dict = {}
 
     draft = get_object_or_404(DraftLaw, number=draft_number)
+    request.user.userprofile.watch(draft)
     context_dict['draft'] = draft
     context_dict['history'] = draft.deserialize_history()
-    context_dict['userdrafts'] = get_user_drafts(request)
+    context_dict['userdrafts'] = request.user.userprofile.get_user_drafts()
 
     if request.method == 'POST':
         form = AddCommentForm(request.POST)
@@ -175,11 +190,3 @@ def release_user_from_draft(request, draft_number):
     x.delete()
     return redirect('index')
 
-def get_user_drafts(request):
-    if request.user.is_authenticated:
-        try:
-            us = request.user.userprofile
-            userdrafts = DraftLaw.objects.filter(userprofile__pk=us.pk)
-            return userdrafts
-        except AttributeError:
-            return []

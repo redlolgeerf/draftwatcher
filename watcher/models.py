@@ -83,12 +83,37 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
 
+    def get_user_drafts(self):
+        try:
+            userdrafts = DraftLaw.objects.filter(userprofile__pk=self.pk)
+            return userdrafts
+        except AttributeError:
+            return []
+
     def get_comment(self, draft):
         try:
             x = UserData.objects.get(userprofile=self, draftlaw=draft)
             return x.comment
         except UserData.DoesNotExist:
             return ''
+    
+    def watch(self, draft):
+        try:
+            x = UserData.objects.get(userprofile=self, draftlaw=draft)
+            x.watched = timezone.now()
+            x.save()
+        except UserData.DoesNotExist:
+            return False
+
+    def is_watched(self, draft):
+        try:
+            x = UserData.objects.get(userprofile=self, draftlaw=draft)
+            if x.watched:
+                return (x.watched < draft.updated)
+            else:
+                return False
+        except UserData.DoesNotExist:
+            return False
 
     def add_comment(self, draft, comment):
         try:
@@ -106,6 +131,10 @@ class UserData(models.Model):
     draftlaw = models.ForeignKey(DraftLaw)
     comment = models.TextField(blank=True)
     date_added = models.DateTimeField(default=timezone.now(), blank=True)
+    watched = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return (self.userprofile.user.username + " " + self.draftlaw.number)
 
 class DraftLawNotFound(Exception):
     def __init__(self, number):

@@ -3,25 +3,27 @@
 {% block body_block %}
 
     {% if drafts %}
-        {% for draft in drafts %}
-            <ul>
-                <li><a href="/draft/{{ draft.number }}/">{{ draft.number }}</a>
-                {% if user.is_authenticated %}
-                    {% if draft in userdrafts %}
-                    <a href="/release_user_from_draft/{{ draft.number }}/">Отписаться</a>
-                    {% else %}
-                    <a href="/add_draft_to_user/{{ draft.number }}/">Подписаться</a>
-                    {% endif %}
+        <div class="col-sm-8">
+          <div class="list-group">
+            {% for draft in drafts %}
+            <a href="/draft/{{ draft.number }}/" class="list-group-item">
+              <h4 class="list-group-item-heading">Законопроект №{{ draft.number }}</h4>
+              <p class="list-group-item-text">{{ draft.title }}</p>
+            </a>
+            {% if user.is_authenticated %}
+                {% if draft in userdrafts %}
+                <a href="/release_user_from_draft/{{ draft.number }}/" class="btn btn-warning">Отписаться</a>
+                {% else %}
+                <a href="/add_draft_to_user/{{ draft.number }}/" class="btn btn-success">Подписаться</a>
                 {% endif %}
-                </li>
-        
-            </ul>
-        {% endfor %}
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div><!-- /.col-sm-4 -->
     {% else %}
         <p>Тут пока ничего нет</p>
     {% endif %}
 
-    <a href="/add_draft/">Добавить законопроект</a>
     <a href="/update/">Обновить</a>
 
 {% endblock %}

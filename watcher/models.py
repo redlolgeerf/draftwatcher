@@ -3,12 +3,12 @@
 """ models for the project """
 
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 from bs4 import BeautifulSoup
 from bs4.diagnose import diagnose
 import requests
-from datetime import datetime
 
 class DraftLaw(models.Model):
     ''' class for draft laws '''
@@ -48,7 +48,7 @@ class DraftLaw(models.Model):
             if 'в архиве' in self.span.lower():
                 self.archived = True
 
-            self.updated = datetime.now()
+            self.updated = timezone.now()
 
             if h:
                 self.curent_status = h[-1]
@@ -70,7 +70,7 @@ class DraftLaw(models.Model):
                 self.serialize_history(h)
                 self.curent_status = h[-1]
 
-            self.updated = datetime.now()
+            self.updated = timezone.now()
         except AttributeError:
             pass
 
@@ -105,7 +105,7 @@ class UserData(models.Model):
     userprofile = models.ForeignKey(UserProfile)
     draftlaw = models.ForeignKey(DraftLaw)
     comment = models.TextField(blank=True)
-    date_added = models.DateTimeField(default=datetime.now(), blank=True)
+    date_added = models.DateTimeField(default=timezone.now(), blank=True)
 
 class DraftLawNotFound(Exception):
     def __init__(self, number):

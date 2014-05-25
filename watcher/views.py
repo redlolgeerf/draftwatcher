@@ -14,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 
 from watcher.models import DraftLaw, UserProfile, UserData
 from watcher.models import DraftLawNotFound
-from watcher.forms import AddDraftForm, UserForm
+from watcher.forms import AddDraftForm, UserForm, AddCommentForm
 
 
 def index(request):
@@ -41,6 +41,17 @@ def detail(request, draft_number):
     context_dict['draft'] = draft
     context_dict['history'] = draft.deserialize_history()
     context_dict['userdrafts'] = get_user_drafts(request)
+
+    if request.method == 'POST':
+        form = AddCommentForm(request.POST)
+        context_dict['form'] = form
+        if form.is_valid():
+            comment = form.cleaned_data['comment']
+            request.user.userprofile.add_comment(draft, comment)
+    else:
+        comment = request.user.userprofile.get_comment(draft)
+        form = AddCommentForm({'comment': comment})
+        context_dict['form'] = form
     return render_to_response('watcher/detail.html',
                               context_dict, context)
 

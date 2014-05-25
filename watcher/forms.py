@@ -33,3 +33,14 @@ class UserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'password']
+
+class AddCommentForm(forms.Form):
+    comment = forms.CharField(required=False, widget=forms.Textarea)
+
+    def clean_comment(self):
+        data = self.cleaned_data['comment']
+        data = data.strip()
+        return data
+
+    class Meta:
+        fields = ('comment', )

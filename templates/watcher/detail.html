@@ -19,6 +19,22 @@
 
     {% if user.is_authenticated %}
         {% if draft in userdrafts %}
+
+        <form id="add_comment_form" method="post" action="/draft/{{ draft.number }}/">
+        {% csrf_token %}
+        {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
+
+        {% for field in form.visible_fields %}
+            {{ field.errors }}
+            {{ field.help_text }}<br/>
+            {{ field }}<br />
+        {% endfor %}
+
+        <br/>
+        <button type="submit" name="submit">Добавить</button>
+    </form>
         <a href="/release_user_from_draft/{{ draft.number }}/">Отписаться</a>
         {% else %}
         <a href="/add_draft_to_user/{{ draft.number }}/">Подписаться</a>

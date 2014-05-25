@@ -83,6 +83,21 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
 
+    def get_comment(self, draft):
+        try:
+            x = UserData.objects.get(userprofile=self, draftlaw=draft)
+            return x.comment
+        except UserData.DoesNotExist:
+            return ''
+
+    def add_comment(self, draft, comment):
+        try:
+            x = UserData.objects.get(userprofile=self, draftlaw=draft)
+            x.comment = comment
+            x.save()
+        except UserData.DoesNotExist:
+            return ''
+
 class UserData(models.Model):
     '''
         a proxy class for relation between UserProfile and DraftLaw

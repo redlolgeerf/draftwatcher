@@ -143,10 +143,8 @@ def user_login(request):
             else:
                 return HttpResponse('Your Rango account is disabled')
         else:
-            return HttpResponse("Invalid login details supplied.")
-
-    else:
-        return render_to_response('watcher/login.html', context_dict, context)
+            context_dict['error'] = 'Неверная пара логин/пароль'
+    return render_to_response('watcher/login.html', context_dict, context)
 
 @login_required
 def user_logout(request):

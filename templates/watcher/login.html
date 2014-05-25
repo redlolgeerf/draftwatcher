@@ -10,9 +10,12 @@
 
     <form id="login_form" method="post" action="/login/" role="form">
     {% csrf_token %}
-      <h2 class="form-signin-heading">Please sign in</h2>
+      <h2 class="form-signin-heading">Авторизоваться</h2>
     <div class="row">
       <div class="col-xs-5">
+        {% if error %}
+        <span class="help-block">{{ error }}</span>
+        {% endif %}
       <input type="text" class="form-control" placeholder="Логин" name="username" required autofocus>
       <input type="password" class="form-control" placeholder="Пароль" name="password" required>
       <label class="checkbox">

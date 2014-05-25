@@ -22,7 +22,6 @@ class AddDraftForm(forms.Form):
         return data
 
     class Meta:
-        model = DraftLaw
         fields = ('number', )
 
 class UserForm(forms.ModelForm):

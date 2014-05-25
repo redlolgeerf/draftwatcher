@@ -32,7 +32,7 @@ def index(request):
                               context_dict, context)
 
 def detail(request, draft_number):
-    ''' detail viewl
+    ''' detail view
         shows attributes of a particular drawft law '''
     context = RequestContext(request)
     context_dict = {}

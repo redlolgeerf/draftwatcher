@@ -108,7 +108,7 @@ class UserProfile(models.Model):
     def is_watched(self, draft):
         try:
             x = UserData.objects.get(userprofile=self, draftlaw=draft)
-            if x.watched:
+            if x.watched and draft.updated:
                 return (x.watched < draft.updated)
             else:
                 return False

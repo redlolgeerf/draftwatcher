@@ -23,12 +23,14 @@ def index(request):
     context = RequestContext(request)
     context_dict = {}
 
-    drafts = request.user.userprofile.get_user_drafts()
+    if request.user.is_authenticated():
+        drafts = request.user.userprofile.get_user_drafts()
 
-    context_dict['userdrafts'] = drafts
+        context_dict['userdrafts'] = drafts
 
-    watched = [request.user.userprofile.is_watched(draft) for draft in drafts]
-    context_dict['drafts'] = zip(drafts, watched)
+        watched = [request.user.userprofile.is_watched(draft)
+                for draft in drafts]
+        context_dict['drafts'] = zip(drafts, watched)
 
     return render_to_response('watcher/index.html',
                               context_dict, context)
@@ -40,7 +42,8 @@ def all_drafts(request):
     drafts = DraftLaw.objects.order_by('-updated')
     context_dict['drafts'] = drafts
 
-    context_dict['userdrafts'] = request.user.userprofile.get_user_drafts()
+    if request.user.is_authenticated():
+        context_dict['userdrafts'] = request.user.userprofile.get_user_drafts()
 
     return render_to_response('watcher/all_drafts.html',
                               context_dict, context)
@@ -52,7 +55,10 @@ def detail(request, draft_number):
     context_dict = {}
 
     draft = get_object_or_404(DraftLaw, number=draft_number)
-    request.user.userprofile.watch(draft)
+
+    if request.user.is_authenticated():
+        request.user.userprofile.watch(draft)
+
     context_dict['draft'] = draft
     context_dict['history'] = draft.deserialize_history()
     context_dict['userdrafts'] = request.user.userprofile.get_user_drafts()

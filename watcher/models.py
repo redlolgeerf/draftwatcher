@@ -69,8 +69,7 @@ class DraftLaw(models.Model):
                     not self.history):
                 self.serialize_history(h)
                 self.curent_status = h[-1]
-
-            self.updated = timezone.now()
+                self.updated = timezone.now()
         except AttributeError:
             pass
 

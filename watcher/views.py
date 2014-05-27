@@ -28,9 +28,10 @@ def index(request):
 
         context_dict['userdrafts'] = drafts
 
-        watched = [request.user.userprofile.is_watched(draft)
-                for draft in drafts]
-        context_dict['drafts'] = zip(drafts, watched)
+        if drafts:
+            watched = [request.user.userprofile.is_watched(draft)
+                    for draft in drafts]
+            context_dict['drafts'] = zip(drafts, watched)
 
     return render_to_response('watcher/index.html',
                               context_dict, context)

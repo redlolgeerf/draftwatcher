@@ -7,9 +7,22 @@
         <div class="list-group">
             {% for draft in drafts %}
             <div class='list-group-item'>
-                <a href="/draft/{{ draft.0.number }}/" class="list-group-item">
-                  <h4 class="list-group-item-heading">Законопроект № {{ draft.0.number }}</h4>
-                </a>
+                <div class="row">
+                    <div class="col-xs-9">
+                        <a href="/draft/{{ draft.0.number }}/" class="list-group-item">
+                          <h4 class="list-group-item-heading">Законопроект № {{ draft.0.number }}</h4>
+                        </a>
+                    </div>
+                    <div class="col-xs-3">
+                        {% if user.is_authenticated %}
+                            {% if draft.0 in userdrafts %}
+                            <a href="/release_user_from_draft/{{ draft.0.number }}/" class="btn btn-warning pull-right">Отписаться</a>
+                            {% else %}
+                            <a href="/add_draft_to_user/{{ draft.0.number }}/" class="btn btn-success pull-right">Подписаться</a>
+                            {% endif %}
+                        {% endif %}
+                    </div><!-- coll-xs-5 -->
+                </div><!-- row -->
                 <div class="list-group-item">
                     <p class="list-group-item-text">{{ draft.0.title }}</p>
                     <div class="row">
@@ -18,15 +31,6 @@
                                 <strong>{{ draft.0.curent_status }}</strong>
                             </div>
                         </div>
-                        <div class="col-xs-3">
-                            {% if user.is_authenticated %}
-                                {% if draft.0 in userdrafts %}
-                                <a href="/release_user_from_draft/{{ draft.0.number }}/" class="btn btn-warning">Отписаться</a>
-                                {% else %}
-                                <a href="/add_draft_to_user/{{ draft.0.number }}/" class="btn btn-success">Подписаться</a>
-                                {% endif %}
-                            {% endif %}
-                        </div><!-- coll-xs-5 -->
                     </div><!-- row -->
                 </div><!-- list-group-item -->
             </div><!-- list-group-item -->

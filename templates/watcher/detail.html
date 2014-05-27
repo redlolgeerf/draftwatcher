@@ -4,6 +4,15 @@
 
     {% if draft %} 
     <h3>Законопроект № {{ draft.number }}</h3>
+
+    {% if user.is_authenticated %}
+        {% if draft in userdrafts %}
+        <a href="/release_user_from_draft/{{ draft.number }}/" class="btn btn-warning pull-right">Отписаться</a>
+        {% else %}
+        <a href="/add_draft_to_user/{{ draft.number }}/" class="btn btn-success pull-right">Подписаться</a>
+        {% endif %}
+    {% endif %}
+
     <p> {{ draft.title }}</p><br />
     {% else %}
         <p>Тут пока ничего нет</p>
@@ -19,8 +28,7 @@
       </div>
     {% endif %}
 
-    {% if user.is_authenticated %}
-        {% if draft in userdrafts %}
+    {% if user.is_authenticated and draft in userdrafts %}
 
         <form id="add_comment_form" method="post" action="/draft/{{ draft.number }}/">
         {% csrf_token %}
@@ -35,12 +43,8 @@
         {% endfor %}
 
         <br/>
-        <button class="btn btn-xs btn-primary" type="submit" name="submit">Добавить</button>
+        <button class="btn btn-xs btn-primary" type="submit" name="submit">Добавить комментарий</button>
     </form>
-        <a href="/release_user_from_draft/{{ draft.number }}/">Отписаться</a>
-        {% else %}
-        <a href="/add_draft_to_user/{{ draft.number }}/">Подписаться</a>
-        {% endif %}
     {% endif %}
 
 {% endblock %}

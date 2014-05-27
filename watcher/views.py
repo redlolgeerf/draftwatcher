@@ -26,9 +26,8 @@ def index(request):
     if request.user.is_authenticated():
         drafts = request.user.userprofile.get_user_drafts()
 
-        context_dict['userdrafts'] = drafts
-
         if drafts:
+            context_dict['userdrafts'] = drafts
             watched = [request.user.userprofile.is_watched(draft)
                     for draft in drafts]
             context_dict['drafts'] = zip(drafts, watched)

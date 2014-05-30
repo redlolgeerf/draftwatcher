@@ -61,21 +61,18 @@ class DraftLaw(models.Model):
 
     def update(self):
         ''' method updates draft, if anything has changed'''
-        try:
-            *__, span, h = parse(self.url)
+        *__, span, h = parse(self.url)
 
-            if self.span != span:
-                self.span = span
+        if self.span != span:
+            self.span = span
 
-            if (self.history and 
-                    (self.deserialize_history() != h) or
-                    not self.history):
-                self.serialize_history(h)
-                self.curent_status = h[-1][0]
-                self.updated = timezone.now()
-            self.date_updated = timezone.now()
-        except AttributeError:
-            pass
+        if (self.history and 
+                (self.deserialize_history() != h) or
+                not self.history):
+            self.serialize_history(h)
+            self.curent_status = h[-1][0]
+            self.updated = timezone.now()
+        self.date_updated = timezone.now()
 
 class UserProfile(models.Model):
     ''' user profile '''
@@ -210,7 +207,8 @@ def parse_history(hb):
                         result.append(crop_between(collumns[0].text, stop = '(')) # FIXME <br /> glues words (look at 466627-6)
                         result.append(crop_between(collumns[1].text, stop =' '))
                         break
-            history.append(result)
+            if result:
+                history.append(result)
     return history
 
 def download(uri):

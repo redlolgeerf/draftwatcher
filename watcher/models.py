@@ -31,10 +31,11 @@ class DraftLaw(models.Model):
         return self.number
 
     def serialize_history(self, h):
-        self.history = "@".join(h)
+        self.history = "@".join(
+                ["|".join([piece for piece in line]) for line in h])
 
     def deserialize_history(self):
-        return self.history.split('@')
+        return [line.split('|') for line in self.history.split('@')]
 
     def make_url(self):
         magic_url = 'asozd2.duma.gov.ru/main.nsf/(Spravka)?OpenAgent&RN='
@@ -51,7 +52,7 @@ class DraftLaw(models.Model):
             self.updated = timezone.now()
 
             if h:
-                self.curent_status = h[-1]
+                self.curent_status = h[-1][0]
             self.serialize_history(h)
         except AttributeError:
             raise DraftLawNotFound(self.number)
@@ -68,7 +69,7 @@ class DraftLaw(models.Model):
                     (self.deserialize_history() != h) or
                     not self.history):
                 self.serialize_history(h)
-                self.curent_status = h[-1]
+                self.curent_status = h[-1][0]
                 self.updated = timezone.now()
         except AttributeError:
             pass
@@ -167,6 +168,11 @@ def parse_header(h):
     return number, name, status
 
 def parse_history(hb):
+    '''
+    we will cycle through the table of tables and save main headers
+    together with latest updates for them and date
+    '''
+
     history_header = hb.find_all('div', class_='data-block-show')
     history_block = hb.find_all('div', class_='data-block-doc data-block')
 
@@ -174,9 +180,29 @@ def parse_history(hb):
 
     for i, y in zip(history_header, history_block):
         if i.text.startswith('Регистрация'):
+            # I just don't need this part
             pass
         else:
-            history.append(i.text)
+            # we use result both as flag to stop iteration
+            # and as a list to store data
+            result = []
+            history_sub_block = y.find_all('table', class_='data-block-table nb tb-nb')
+            # need to cycle backwards to grab only the freshst piece
+            for z in reversed(history_sub_block):
+            # if at this moment result is not empty, 
+            # break, because we already have frsher data
+                if result:
+                    break
+                history_line = z.find_all('tr')
+                for x in reversed(history_line):
+                    collumns = x.find_all('td')
+            # we need a row with date in second collumn
+                    if collumns[1].text.strip():
+                        result.append(crop_between(i.text.strip(), stop = ','))
+                        result.append(crop_between(collumns[0].text, stop = '(')) # FIXME <br /> glues words (look at 466627-6)
+                        result.append(crop_between(collumns[1].text, stop =' '))
+                        break
+            history.append(result)
     return history
 
 def download(uri):

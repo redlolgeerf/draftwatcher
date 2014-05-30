@@ -3,7 +3,7 @@
 {% block body_block %}
 
     {% if draft %} 
-    <h3>Законопроект № {{ draft.number }}</h3>
+    <h3><a href={{ draft.url }}>Законопроект № {{ draft.number }}</a></h3>
 
     {% if user.is_authenticated %}
         {% if draft in userdrafts %}
@@ -22,7 +22,17 @@
       <div class="list-group">
         {% for day in history %}
         <a class="list-group-item {% if forloop.last %} active{% endif %}">
-        {{ day }}
+            <div class="row">
+                <div class="col-xs-5">
+                    {{ day.0 }}
+                </div>
+                <div class="col-xs-5">
+                    {{ day.1 }}
+                </div>
+                <div class="col-xs-2">
+                    {{ day.2 }}
+                </div>
+            </div>
         </a>
         {% endfor %}
       </div>

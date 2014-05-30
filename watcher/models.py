@@ -23,6 +23,7 @@ class DraftLaw(models.Model):
     url = models.URLField(blank=True)
 
     updated = models.DateTimeField(blank=True, null=True)
+    date_updated = models.DateTimeField(blank=True, null=True)
     curent_status = models.CharField(max_length=200, blank=True)
     archived = models.BooleanField(default=False)
     history = models.TextField(blank=True)
@@ -50,6 +51,7 @@ class DraftLaw(models.Model):
                 self.archived = True
 
             self.updated = timezone.now()
+            self.date_updated = timezone.now()
 
             if h:
                 self.curent_status = h[-1][0]
@@ -71,6 +73,7 @@ class DraftLaw(models.Model):
                 self.serialize_history(h)
                 self.curent_status = h[-1][0]
                 self.updated = timezone.now()
+            self.date_updated = timezone.now()
         except AttributeError:
             pass
 

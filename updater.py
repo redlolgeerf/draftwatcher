@@ -26,6 +26,23 @@ def update_all():
 
 
 if __name__ == '__main__':
+    #activate_this = '/home/draftwatcher/.virtualenvs/draftwatcher/bin/activate_this.py'
+    activate_this = '/home/eyeinthebrick/.virtualenvs/draft_law/bin/activate_this.py'
+    with open(activate_this) as f:
+        code = compile(f.read(), activate_this, 'exec')
+        exec(code, dict(__file__=activate_this))
+
+    # ADD PROJECT TO THE PYTHONPATH FOR THE PYTHON INSTANCE
+    path = '/home/eyeinthebrick/Python/Django/draft_law_project'
+    #$path = '/home/draftwatcher/draftwatcher'
+
+    if path not in sys.path:
+        sys.path.append(path)
+
+    os.chdir(path)
+
+    # TELL DJANGO WHERE YOUR SETTINGS MODULE IS LOCATED
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'draft_law_project.settings'
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'draft_law_project.settings')
     from watcher.models import DraftLaw
     update_all()

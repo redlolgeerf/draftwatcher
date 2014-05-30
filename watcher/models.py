@@ -145,11 +145,16 @@ class DraftLawNotFound(Exception):
         Exception.__init__(self, 'Законопроект %s не найден' % number)
 
 
-def crop_between(text, start, stop=None):
+def crop_between(text, start=None, stop=None):
     text = str(text)
-    a = text.find(str(start))
+    if start:
+        a = text.find(str(start))
+    else:
+        a = -1
     if stop:
         b = text.find(str(stop), a + 1)
+        if b == -1:
+            b = len(text)
         return text[a+1: b].strip()
     return text[a+1: ].strip()
 

@@ -5,6 +5,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.core.mail import send_mass_mail
 
 from bs4 import BeautifulSoup
 from bs4.diagnose import diagnose
@@ -72,7 +73,33 @@ class DraftLaw(models.Model):
             self.serialize_history(h)
             self.curent_status = h[-1][0]
             self.updated = timezone.now()
+            try:
+                self.notify_users()
+            except:
+                pass
         self.date_updated = timezone.now()
+
+    def notify_users(self):
+        users_to_notify = self.userprofile_set.all()
+        sender = 'admin@gmail.com' 
+        msg = {}
+        msg['subject'] = 'Обновлен статус законопроекта %s' % self.number
+        # FIXME: add link to unsuscribe
+        # FIXME: make letter more explanatory
+        msg['body'] = '''
+        Обновлен статус законопроекта {number}.
+        Новый статус: {status}.
+        Вы можете посмотреть историю изменений у нас на сайте http://draftwatcher.pythonanywhere.com/draft/{number}/ или
+        на странице Государственной Думы {url}.
+
+        Если вы не ходите получать рассылку, просто нажмите на ссылку.
+        '''.format(number=self.number, url=self.url, status=self.curent_status)  
+        mails = []
+
+        for recepient in users_to_notify:
+            mails.append((msg['subject'], msg['body'], sender,
+                    [recepient.user.email]))
+        send_mass_mail(tuple(mails), fail_silently=False)
 
 class UserProfile(models.Model):
     ''' user profile '''

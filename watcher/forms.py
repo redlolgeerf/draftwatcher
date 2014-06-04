@@ -30,6 +30,15 @@ class RegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(), help_text="Пароль")
     password_repeat = forms.CharField(widget=forms.PasswordInput(), help_text="Введите пароль ещё раз")
 
+    def clean_email(self):
+        data = self.cleaned_data['email']
+        try:
+            us = User.objects.get(email=data)
+            raise forms.ValidationError("Пользователь с таким email уже существует.")
+        except User.DoesNotExist:
+            pass
+        return data
+
     def clean(self):
         cleaned_data = super(RegisterForm, self).clean()
         password = cleaned_data.get('password')

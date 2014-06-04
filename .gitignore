@@ -1,3 +1,5 @@
 *.pyc
 sample_pages/*
 db.sqlite3
+draft_law_project/settings/local.py
+

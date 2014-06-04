@@ -5,7 +5,8 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-from django.core.mail import send_mass_mail
+from django.core.mail import send_mass_mail, send_mail
+from django.core.signing import Signer
 
 from bs4 import BeautifulSoup
 from bs4.diagnose import diagnose
@@ -106,9 +107,38 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User)
     draftlaw = models.ManyToManyField(DraftLaw,
             blank=True, through='UserData')
+    email_verified = models.BooleanField(default=False)
+    email_verification_key = models.CharField(max_length=300, blank=True)
+    notify = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username
+
+    def generate_key(self):
+        email = self.user.email
+        if email:
+            signer = Signer()
+            self.email_verification_key = signer.sign(email)
+            self.save()
+
+    def verify_email(self):
+        sender = 'admin@gmail.com' 
+        msg = {}
+        msg['subject'] = 'Подтверждение email' 
+        magic_url = 'http://draftwatcher.pythonanywhere.com/'
+        msg['body'] = '''
+        Если вы хотите получать уведомления об обновлении законопроектов на сайте
+        Закономонитор, пожалуйста, перейдите по ссылке 
+        {url}.
+        
+        Если вы не иницировали отправление этого сообщения, 
+        просто проигнорируйте его
+        '''.format(
+                url=''.join(
+                    (magic_url,'verify_email/', self.email_verification_key)))
+
+        send_mail(msg['subject'], msg['body'], sender,
+            [self.user.email], fail_silently=False)
 
     def get_user_drafts(self):
         try:

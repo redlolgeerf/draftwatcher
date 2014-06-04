@@ -1,0 +1,37 @@
+{% extends 'watcher/base.html' %}
+
+{% block body_block %}
+        <form class="form-signin span8" id="change_email_form" method="post" action="/profile/">
+            {% csrf_token %}
+
+            <input name="user" type="hidden" value="{{ user }}"/>
+            {% for field in user_form.visible_fields %}
+                {% for error in field.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+            <div class="row">
+              <div class="col-xs-5">
+                <span class="help-block">{{ message }}</span>
+                <div class="form-group {% if user_form.email.errors %}has-error{% endif %}">
+                    {% for error in user_form.email.errors %}
+                    <span class="help-block">{{ error }}</span>
+                    {% endfor %}
+                    <input type="email" class="form-control" placeholder="{{ email }}" name="email" autofocus>
+                </div>
+                <a href="/send_verification/" class="btn btn-lg btn-primary">Подтвердить email</a>
+                <div class="form-group {% if user_form.notify.errors %}has-error{% endif %}">
+                    {% for error in user_form.notify.errors %}
+                    <span class="help-block">{{ error }}</span>
+                    {% endfor %}
+                    <label class="checkbox">
+                        <input type="checkbox" value="notify"> Присылать уведомления об изменении статуса отслеживаемых законопроектов. 
+                    </label>
+                </div>
+                
+                <button class="btn btn-lg btn-primary" type="submit">Сохранить изменения</button>
+              </div>
+            </div>
+
+        </form>
+{% endblock %}

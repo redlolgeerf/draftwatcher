@@ -2,6 +2,8 @@
 
 ''' view module '''
 
+import sys
+
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 
@@ -14,7 +16,7 @@ from django.contrib.auth.decorators import login_required
 
 from watcher.models import DraftLaw, UserProfile, UserData
 from watcher.models import DraftLawNotFound
-from watcher.forms import AddDraftForm, RegisterForm, AddCommentForm
+from watcher.forms import AddDraftForm, RegisterForm, AddCommentForm, ProfileForm
 
 
 def index(request):
@@ -162,11 +164,78 @@ def user_login(request):
                 login(request, user)
                 return redirect('index')
             else:
-                return HttpResponse('Your Rango account is disabled')
+                return HttpResponse('Ваш аккаунт неактивен')
         else:
             context_dict['error'] = 'Неверная пара логин/пароль'
     return render_to_response('watcher/login.html', context_dict, context)
 
+@login_required
+def profile(request):
+    context = RequestContext(request)
+    context_dict = {}
+    us = request.user
+    prof = us.userprofile
+
+    context_dict['email'] = us.email
+    context_dict['user'] = us.username
+    context_dict['message'] = ''
+
+    if request.method == 'POST':
+        form = ProfileForm(data=request.POST)
+        context_dict['user_form'] = form 
+
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            notify = form.cleaned_data['notify']
+            if email:
+                us.email = email
+                us.save()
+            prof.notify = notify
+            prof.save()
+            context_dict['message'] = 'Изменения успешно сохранены'
+    else:
+        form = ProfileForm({'email': us.email, 'user': us})
+        context_dict['user_form'] = form
+    return render_to_response('watcher/profile.html', context_dict, context)
+
+@login_required
+def send_verification(request):
+    context = RequestContext(request)
+    context_dict = {}
+    us = request.user
+    prof = us.userprofile
+    try:
+        prof.generate_key()
+        prof.verify_email()
+        context_dict['message'] = '''Cообщение отправлено.
+        Проверьте свой почтовый ящик и перейдите по присланной ссылке,
+        чтобы подвердить свой email.'''
+    except:
+        context_dict['message'] = '''Не удалось отправить сообщение. 
+        Обратитесь к администратору.'''
+    return render_to_response('watcher/many_purpose.html', context_dict, context)
+
+def verify_email(request, inp):
+    context = RequestContext(request)
+    context_dict = {}
+    context_dict['message'] = 'Не удалось подтвердить email. Неправильная ссылка'
+    if ':' in inp:
+        x = inp.index(':')
+        email = inp[:x]
+        key = inp[x+1:]
+        try:
+            us = User.objects.get(email=email)
+            prof = us.userprofile
+        except User.DoesNotExist:
+            pass
+        except UserProfile.DoesNotExist:
+            pass
+        if key and (key == us.uerprofile.email_verification_key):
+            prof.email_verified = True
+            prof.save()
+            context_dict['message'] = 'Email успешно подтверждён.'
+    
+    return render_to_response('watcher/many_purpose.html', context_dict, context)
 @login_required
 def user_logout(request):
     logout(request)
@@ -195,4 +264,3 @@ def release_user_from_draft(request, draft_number):
     x = get_object_or_404(UserData, userprofile=userprofile, draftlaw=draf)
     x.delete()
     return redirect('index')
-

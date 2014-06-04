@@ -18,4 +18,7 @@ urlpatterns = patterns('',
         url(r'^register/$', views.register, name='register'),
         url(r'^logout/$', views.user_logout, name='user_logout'),
         url(r'^login/$', views.user_login, name='user_login'),
+        url(r'^profile/$', views.profile, name='profile'),
+        url(r'^verify_email/(?P<inp>.+)/$', views.verify_email, name='verify_email'),
+        url(r'^send_verification/$', views.send_verification, name='send_verification'),
         )

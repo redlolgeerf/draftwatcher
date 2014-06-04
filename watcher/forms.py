@@ -55,6 +55,35 @@ class RegisterForm(forms.ModelForm):
         model = User
         fields = ['username', 'email', 'password', 'password_repeat']
 
+class ProfileForm(forms.Form):
+    email = forms.CharField(help_text="Email", required=False)
+    notify = forms.BooleanField(required=False)
+    user = forms.CharField(widget=forms.HiddenInput())
+
+    def clean(self):
+        cleaned_data = super(ProfileForm, self).clean()
+        email = cleaned_data.get('email')
+        user = cleaned_data.get('user')
+        notify = cleaned_data.get('notify')
+
+        try:
+            us = User.objects.get(email=email)
+            if us != User.objects.get(username=user):
+                msg = "Пользователь с таким email уже существует."
+                self._errors["email"] = self.error_class([msg])
+                del cleaned_data["email"]
+        except User.DoesNotExist:
+            pass
+
+        print(notify)
+        if notify:
+            us = User.objects.get(username=user)
+            if not us.userprofile.email_verified:
+                msg = "Вы должны подтвердить email, чтобы получать рассылку."
+                self._errors["notify"] = self.error_class([msg])
+                del cleaned_data["notify"]
+        return cleaned_data
+
 class AddCommentForm(forms.Form):
     comment = forms.CharField(required=False, widget=forms.Textarea)
 

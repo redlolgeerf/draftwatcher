@@ -121,7 +121,10 @@ class UserProfile(models.Model):
         email = self.user.email
         if email:
             signer = Signer()
-            self.email_verification_key = signer.sign(email)
+            key = signer.sign(email)
+            x = key.index(':')
+            key = key[x+1:]
+            self.email_verification_key = key
             self.save()
 
     def verify_email(self):

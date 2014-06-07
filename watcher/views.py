@@ -13,6 +13,7 @@ from django.shortcuts import render_to_response
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 from watcher.models import DraftLaw, UserProfile, UserData
 from watcher.models import DraftLawNotFound
@@ -219,23 +220,15 @@ def verify_email(request, inp):
     context = RequestContext(request)
     context_dict = {}
     context_dict['message'] = 'Не удалось подтвердить email. Неправильная ссылка'
-    if ':' in inp:
-        x = inp.index(':')
-        email = inp[:x]
-        key = inp[x+1:]
-        try:
-            us = User.objects.get(email=email)
-            prof = us.userprofile
-        except User.DoesNotExist:
-            pass
-        except UserProfile.DoesNotExist:
-            pass
-        if key and (key == us.uerprofile.email_verification_key):
-            prof.email_verified = True
-            prof.save()
-            context_dict['message'] = 'Email успешно подтверждён.'
-    
+    try:
+        prof = UserProgile.objects.get(email_verification_key=inp)
+        prof.email_verified = True
+        prof.save()
+        context_dict['message'] = 'Email успешно подтверждён.'
+    except UserProfile.DoesNotExist:
+        pass
     return render_to_response('watcher/many_purpose.html', context_dict, context)
+
 @login_required
 def user_logout(request):
     logout(request)

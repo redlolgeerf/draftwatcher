@@ -177,8 +177,7 @@ def profile(request):
     prof = us.userprofile
 
     context_dict['email'] = us.email
-    context_dict['user'] = us.username
-    context_dict['message'] = ''
+    context_dict['username'] = us.username
 
     if request.method == 'POST':
         form = ProfileForm(data=request.POST)
@@ -187,14 +186,15 @@ def profile(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             notify = form.cleaned_data['notify']
-            if email:
+            if email and us.email != email:
                 us.email = email
                 us.save()
-            prof.notify = notify
-            prof.save()
-            context_dict['message'] = 'Изменения успешно сохранены'
+            if notify != prof.notify:
+                prof.notify = notify
+                prof.save()
+            return redirect('profile')
     else:
-        form = ProfileForm({'email': us.email, 'user': us})
+        form = ProfileForm({'email': us.email, 'username': us})
         context_dict['user_form'] = form
     return render_to_response('watcher/profile.html', context_dict, context)
 

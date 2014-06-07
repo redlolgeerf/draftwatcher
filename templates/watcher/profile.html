@@ -4,20 +4,14 @@
         <form class="form-signin span8" id="change_email_form" method="post" action="/profile/">
             {% csrf_token %}
 
-            <input name="user" type="hidden" value="{{ user }}"/>
-            {% for field in user_form.visible_fields %}
-                {% for error in field.errors %}
-                <p>{{ error }}</p>
-                {% endfor %}
-            {% endfor %}
+            {{ user_form.username }}
             <div class="row">
               <div class="col-xs-5">
-                <span class="help-block">{{ message }}</span>
                 <div class="form-group {% if user_form.email.errors %}has-error{% endif %}">
                     {% for error in user_form.email.errors %}
                     <span class="help-block">{{ error }}</span>
                     {% endfor %}
-                    <input type="email" class="form-control" placeholder="{{ email }}" name="email" autofocus>
+                    <input id="id_email" type="email" class="form-control" value="{{ email }}" name="email" autofocus>
                 </div>
                 <a href="/send_verification/" class="btn btn-lg btn-primary">Подтвердить email</a>
                 <div class="form-group {% if user_form.notify.errors %}has-error{% endif %}">
@@ -25,7 +19,7 @@
                     <span class="help-block">{{ error }}</span>
                     {% endfor %}
                     <label class="checkbox">
-                        <input type="checkbox" value="notify"> Присылать уведомления об изменении статуса отслеживаемых законопроектов. 
+                        <input type="checkbox" id="id_notify" name="notify" value="notify" /> Присылать уведомления об изменении статуса отслеживаемых законопроектов. 
                     </label>
                 </div>
                 

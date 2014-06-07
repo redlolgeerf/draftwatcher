@@ -34,7 +34,7 @@ class DraftLaw(models.Model):
         return self.number
 
     def serialize_history(self, h):
-        self.history = "@".join(
+        return "@".join(
                 ["|".join([piece for piece in line]) for line in h])
 
     def deserialize_history(self):
@@ -57,7 +57,7 @@ class DraftLaw(models.Model):
 
             if h:
                 self.curent_status = h[-1][0]
-            self.serialize_history(h)
+            self.history = self.serialize_history(h)
 
             if t:
                 self.text_url = t

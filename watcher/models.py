@@ -9,7 +9,6 @@ from django.core.mail import send_mass_mail, send_mail
 from django.core.signing import Signer
 
 from bs4 import BeautifulSoup
-from bs4.diagnose import diagnose
 import requests
 
 class DraftLaw(models.Model):
@@ -23,6 +22,7 @@ class DraftLaw(models.Model):
     span = models.CharField(max_length=300, blank=True)
     # Ex: http://asozd2.duma.gov.ru/main.nsf/%28Spravka%29?OpenAgent&RN=374295-6
     url = models.URLField(blank=True)
+    text_url = models.URLField(blank=True)
 
     updated = models.DateTimeField(blank=True, null=True)
     date_updated = models.DateTimeField(blank=True, null=True)
@@ -48,7 +48,7 @@ class DraftLaw(models.Model):
         ''' method which downloads a respective page, parse it and populate
         db with draft law atributes'''
         try:
-            self.number, self.title, self.span, h = parse(self.url)
+            self.number, self.title, self.span, h, t = parse(self.url)
             if 'в архиве' in self.span.lower():
                 self.archived = True
 
@@ -58,6 +58,9 @@ class DraftLaw(models.Model):
             if h:
                 self.curent_status = h[-1][0]
             self.serialize_history(h)
+
+            if t:
+                self.text_url = t
         except AttributeError:
             raise DraftLawNotFound(self.number)
 
@@ -239,6 +242,7 @@ def parse_history(hb):
     history_block = hb.find_all('div', class_='data-block-doc data-block')
 
     history = []
+    text_url = ''
 
     for i, y in zip(history_header, history_block):
         if i.text.startswith('Регистрация'):
@@ -252,12 +256,17 @@ def parse_history(hb):
             # need to cycle backwards to grab only the freshst piece
             for z in reversed(history_sub_block):
             # if at this moment result is not empty, 
-            # break, because we already have frsher data
+            # break, because we already have fresher data
                 if result:
                     break
                 history_line = z.find_all('tr')
                 for x in reversed(history_line):
                     collumns = x.find_all('td')
+                    if not text_url:
+                        if collumns[0].a:
+                            if 'Текст' in collumns[0].a.text:
+                                text_url = collumns[0].a.get('href')
+                                text_url = 'http://asozd2.duma.gov.ru' + text_url
             # we need a row with date in second collumn
                     if collumns[1].text.strip():
                         result.append(crop_between(i.text.strip(), stop = ','))
@@ -266,7 +275,7 @@ def parse_history(hb):
                         break
             if result:
                 history.append(result)
-    return history
+    return history, text_url
 
 def download(uri):
     html_doc = requests.get(uri)
@@ -281,6 +290,6 @@ def parse(uri):
     history_box = soup.find('div', class_='tab tab-act')
 
     title, number, status = parse_header(header)
-    history = parse_history(history_box)
+    history, text_url = parse_history(history_box)
 
-    return title, number, status, history
+    return title, number, status, history, text_url

@@ -14,6 +14,9 @@
     {% endif %}
 
     <p> {{ draft.title }}</p><br />
+    {% if draft.text_url %}
+    <a href={{ draft.text_url }}>Текст законопроекта</a>
+    {% endif %}
     {% else %}
         <p>Тут пока ничего нет</p>
     {% endif %}

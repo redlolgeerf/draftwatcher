@@ -6,7 +6,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.core.mail import send_mass_mail, send_mail
-from django.core.signing import Signer
+from django.core.signing import Signer, TimestampSigner, BadSignature, SignatureExpired
 
 from bs4 import BeautifulSoup
 import requests
@@ -113,6 +113,7 @@ class UserProfile(models.Model):
     email_verified = models.BooleanField(default=False)
     email_verification_key = models.CharField(max_length=300, blank=True)
     notify = models.BooleanField(default=False)
+    password_restore_key = models.CharField(max_length=300, blank=True)
 
     def __str__(self):
         return self.user.username
@@ -185,6 +186,48 @@ class UserProfile(models.Model):
             x.save()
         except UserData.DoesNotExist:
             return ''
+
+    def send_restore_password(self):
+        signer = TimestampSigner()
+        value = signer.sign(self.user.username)
+        x = value.index(':')
+        key = value[x+1:]
+        
+        self.password_restore_key = key
+        self.save()
+
+        sender = 'admin@gmail.com' 
+        msg = {}
+        msg['subject'] = 'Восстановление пароля' 
+        magic_url = 'http://draftwatcher.pythonanywhere.com/'
+        msg['body'] = '''
+        Вы запросили восстановление пароля. Если Вы хотите
+        сбросить пароль, перейдите по ссылке:
+        {url}.
+        Ссылка будет активна в течение пяти минут.
+        
+        Если вы не иницировали отправление этого сообщения, 
+        просто проигнорируйте его.
+        '''.format(
+                url=''.join(
+                    (magic_url,'restore_password/', key)))
+
+        send_mail(msg['subject'], msg['body'], sender,
+            [self.user.email], fail_silently=False)
+        return key
+
+    def restore_password(self, inp):
+        key = self.user.username + ":" + inp
+        signer = TimestampSigner()
+        try:
+            x = signer.unsign(key, max_age=60*5)
+            if x == self.user.username:
+                return True
+        except (SignatureExpired, BadSignature):
+            pass
+        return False
+
+
 
 class UserData(models.Model):
     '''

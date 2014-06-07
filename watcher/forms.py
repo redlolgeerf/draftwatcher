@@ -93,3 +93,22 @@ class AddCommentForm(forms.Form):
 
     class Meta:
         fields = ('comment', )
+
+class RestorePasswordForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput(), help_text="Пароль")
+    password_repeat = forms.CharField(widget=forms.PasswordInput(), help_text="Введите пароль ещё раз")
+
+    def clean(self):
+        cleaned_data = super(RestorePasswordForm, self).clean()
+        password = cleaned_data.get('password')
+        password_repeat = cleaned_data.get('password_repeat')
+
+        if password != password_repeat:
+            msg = "Введённые пароли должны совпадать."
+            self._errors["password"] = self.error_class([msg])
+            del cleaned_data["password"]
+            del cleaned_data["password_repeat"]
+        return cleaned_data
+
+    class Meta:
+        fields = ['password', 'password_repeat']

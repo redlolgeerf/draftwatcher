@@ -21,4 +21,6 @@ urlpatterns = patterns('',
         url(r'^profile/$', views.profile, name='profile'),
         url(r'^verify_email/(?P<inp>.+)/$', views.verify_email, name='verify_email'),
         url(r'^send_verification/$', views.send_verification, name='send_verification'),
+        url(r'^send_restore_password/$', views.send_restore_password, name='send_restore_password'),
+        url(r'^restore_password/(?P<inp>.*)$', views.restore_password, name='restore_password'),
         )

@@ -1,11 +1,22 @@
 from bs4 import BeautifulSoup
 from django.test import TestCase
-from watcher.models import DraftLaw
+from django.core import mail
+from watcher.models import DraftLaw, UserProfile, User
 from watcher.models import (
         crop_between,
         parse_header,
         parse_history,
         )
+
+def generate_user():
+    us = User(username='test', email='test@test.ru')
+    us.set_password('test')
+    us.save()
+    return us
+
+def generate_user_profile(us):
+    prof = UserProfile(user=us)
+    return prof
 
 class UtilsTests(TestCase):
 
@@ -38,6 +49,23 @@ class UtilsTests(TestCase):
                      '21.05.2014']],
                  'http://asozd2.duma.gov.ru/work/dz.nsf/ByID/C66381491CE9FD9A43257CDF00531355/$File/Текст внесенный.rtf?OpenElement'))
 
+
+class UserProfileTests(TestCase):
+
+    magic_value = '1WtKXJ:LosJyNaW5vvwO-AwNUUKiaPtQDs'
+    def test_send_restore_password(self):
+        prof = generate_user_profile(generate_user())
+        x = prof.send_restore_password()
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, 'Восстановление пароля')
+        print(mail.outbox[0].body)
+        mail.outbox = []
+
+    def test_restore_password(self):
+        prof = generate_user_profile(generate_user())
+        x = prof.send_restore_password()
+        self.assertEqual(prof.restore_password(x), True)
+        self.assertEqual(prof.restore_password(x+'a'), False)
 
 
 

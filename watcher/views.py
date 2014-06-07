@@ -17,7 +17,7 @@ from django.contrib.auth.models import User
 
 from watcher.models import DraftLaw, UserProfile, UserData
 from watcher.models import DraftLawNotFound
-from watcher.forms import AddDraftForm, RegisterForm, AddCommentForm, ProfileForm
+from watcher.forms import AddDraftForm, RegisterForm, AddCommentForm, ProfileForm, RestorePasswordForm
 
 
 def index(request):
@@ -199,6 +199,54 @@ def profile(request):
         context_dict['user_form'] = form
     return render_to_response('watcher/profile.html', context_dict, context)
 
+def send_restore_password(request):
+    context = RequestContext(request)
+    context_dict = {}
+    if request.method == "POST":
+        email = request.POST['email']
+        try:
+            us = User.objects.get(email=email)
+            us.userprofile.send_restore_password()
+            context_dict['message'] = 'Вам отправленно письмо для восстановления пароля.'
+        except User.DoesNotExist:
+            context_dict['message'] = 'Нет пользователя с таким email'
+    return render_to_response('watcher/send_restore_password.html', context_dict, context)
+
+def restore_password(request, inp=None):
+    context = RequestContext(request)
+    context_dict = {}
+    context_dict['inp'] = inp
+
+    if '/' in inp:
+        inp = inp[:-1]
+
+    try:
+        prof = UserProfile.objects.get(password_restore_key=inp)
+    except UserProfile.DoesNotExist:
+        context_dict['message'] = 'Не удалось восстановить пароль. Неправильная ссылка'
+        return render_to_response('watcher/restore_password.html',
+                context_dict, context)
+
+    if request.method == "POST":
+        form = RestorePasswordForm(data=request.POST)
+        context_dict['form'] = form
+        if form.is_valid():
+            x = form.cleaned_data['password']
+            prof.user.set_password(x)
+            prof.user.save()
+            prof.password_restore_key = ''
+            prof.save()
+            return redirect('user_login')
+        else:
+            context_dict['message'] = ''
+    else:
+        if prof.restore_password(inp):
+            form = RestorePasswordForm()
+            context_dict['form'] = form
+        else:
+            context_dict['message'] = 'Не удалось восстановить пароль. Ссылка неактивна.'
+    return render_to_response('watcher/restore_password.html', context_dict, context)
+
 @login_required
 def send_verification(request):
     context = RequestContext(request)
@@ -221,7 +269,7 @@ def verify_email(request, inp):
     context_dict = {}
     context_dict['message'] = 'Не удалось подтвердить email. Неправильная ссылка'
     try:
-        prof = UserProgile.objects.get(email_verification_key=inp)
+        prof = UserProfile.objects.get(email_verification_key=inp)
         prof.email_verified = True
         prof.save()
         context_dict['message'] = 'Email успешно подтверждён.'

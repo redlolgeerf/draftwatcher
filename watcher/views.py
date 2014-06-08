@@ -195,7 +195,8 @@ def profile(request):
                 prof.save()
             return redirect('profile')
     else:
-        form = ProfileForm({'email': us.email, 'username': us})
+        form = ProfileForm({
+            'email': us.email, 'username': us, 'notify': prof.notify})
         context_dict['user_form'] = form
     return render_to_response('watcher/profile.html', context_dict, context)
 

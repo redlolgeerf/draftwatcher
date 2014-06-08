@@ -18,9 +18,7 @@
                     {% for error in user_form.notify.errors %}
                     <span class="help-block">{{ error }}</span>
                     {% endfor %}
-                    <label class="checkbox">
-                        <input type="checkbox" id="id_notify" name="notify" value="notify" /> Присылать уведомления об изменении статуса отслеживаемых законопроектов. 
-                    </label>
+                    {{ user_form.notify }} Присылать уведомления об изменении статуса отслеживаемых законопроектов.
                 </div>
                 
                 <button class="btn btn-lg btn-primary" type="submit">Сохранить изменения</button>

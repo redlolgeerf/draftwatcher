@@ -8,7 +8,6 @@ from watcher.models import (
         parse_history,
         )
 
-<<<<<<< HEAD
 def generate_user():
     us = User(username='test', email='test@test.ru')
     us.set_password('test')
@@ -18,59 +17,6 @@ def generate_user():
 def generate_user_profile(us):
     prof = UserProfile(user=us)
     return prof
-
-class UtilsTests(TestCase):
-
-    def test_crop_between(self):
-        s = 'Привет, привет!'
-        self.assertEqual(crop_between(s), s)
-        self.assertEqual(crop_between(s, start='и'), 'вет, привет!')
-        self.assertEqual(crop_between(s, stop=' '), 'Привет,')
-        self.assertEqual(crop_between(s, start=' ', stop='!'), 'привет')
-
-    def test_parse_header(self):
-        test_input = BeautifulSoup(test_input_header)
-        self.assertEqual(parse_header(test_input), 
-            ('413886-6',
-             'О внесении изменений в Федеральный закон "Об организации и о проведении XXII Олимпийских зимних игр и XI Паралимпийских зимних игр 2014 года в городе Сочи, развитии города Сочи как горноклиматического курорта и внесении изменений в отдельные законодательные акты Российской Федерации" (в части распоряжения Олимпийскими объектами федерального значения)',
-             'находится на рассмотрении')
-                        )
-
-    def test_parse_history(self):
-        test_input = BeautifulSoup(test_input_history)
-        self.assertEqual(parse_history(test_input), (
-                [['Внесение законопроекта в Государственную Думу',
-                    'направлен в Комитет Государственной Думы по вопросам собственности',
-                    '23.12.2013'],
-                 ['Предварительное рассмотрение законопроекта',
-                    'назначить ответственный комитет',
-                    '16.01.2014'],
-                 ['Рассмотрение законопроекта в первом чтении',
-                     'принять законопроект в первом чтении; представить поправки к законопроекту в семидневный срок со дня принятия постановления',
-                     '21.05.2014']],
-                 'http://asozd2.duma.gov.ru/work/dz.nsf/ByID/C66381491CE9FD9A43257CDF00531355/$File/Текст внесенный.rtf?OpenElement'))
-
-=======
->>>>>>> parsing
-
-class UserProfileTests(TestCase):
-
-    magic_value = '1WtKXJ:LosJyNaW5vvwO-AwNUUKiaPtQDs'
-    def test_send_restore_password(self):
-        prof = generate_user_profile(generate_user())
-        x = prof.send_restore_password()
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, 'Восстановление пароля')
-        print(mail.outbox[0].body)
-        mail.outbox = []
-
-    def test_restore_password(self):
-        prof = generate_user_profile(generate_user())
-        x = prof.send_restore_password()
-        self.assertEqual(prof.restore_password(x), True)
-        self.assertEqual(prof.restore_password(x+'a'), False)
-
-
 
 test_input_header = '''
 <div class="ecard-header">
@@ -403,6 +349,24 @@ class UtilsTests(TestCase):
                      'принять законопроект в первом чтении; представить поправки к законопроекту в семидневный срок со дня принятия постановления',
                      '21.05.2014']],
                  'http://asozd2.duma.gov.ru/work/dz.nsf/ByID/C66381491CE9FD9A43257CDF00531355/$File/Текст внесенный.rtf?OpenElement'))
+
+
+class UserProfileTests(TestCase):
+
+    magic_value = '1WtKXJ:LosJyNaW5vvwO-AwNUUKiaPtQDs'
+    def test_send_restore_password(self):
+        prof = generate_user_profile(generate_user())
+        x = prof.send_restore_password()
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, 'Восстановление пароля')
+        print(mail.outbox[0].body)
+        mail.outbox = []
+
+    def test_restore_password(self):
+        prof = generate_user_profile(generate_user())
+        x = prof.send_restore_password()
+        self.assertEqual(prof.restore_password(x), True)
+        self.assertEqual(prof.restore_password(x+'a'), False)
 
 class DraftLawTests(TestCase):
 

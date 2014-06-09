@@ -61,21 +61,21 @@ def detail(request, draft_number):
 
     if request.user.is_authenticated():
         request.user.userprofile.watch(draft)
+        context_dict['userdrafts'] = request.user.userprofile.get_user_drafts()
 
     context_dict['draft'] = draft
     context_dict['history'] = draft.deserialize_history()
-    context_dict['userdrafts'] = request.user.userprofile.get_user_drafts()
 
-    if request.method == 'POST':
-        form = AddCommentForm(request.POST)
-        context_dict['form'] = form
-        if form.is_valid():
-            comment = form.cleaned_data['comment']
-            request.user.userprofile.add_comment(draft, comment)
-    else:
-        comment = request.user.userprofile.get_comment(draft)
-        form = AddCommentForm({'comment': comment})
-        context_dict['form'] = form
+#     if request.method == 'POST':
+#         form = AddCommentForm(request.POST)
+#         context_dict['form'] = form
+#         if form.is_valid():
+#             comment = form.cleaned_data['comment']
+#             request.user.userprofile.add_comment(draft, comment)
+#     else:
+#         comment = request.user.userprofile.get_comment(draft)
+#         form = AddCommentForm({'comment': comment})
+#         context_dict['form'] = form
     return render_to_response('watcher/detail.html',
                               context_dict, context)
 

@@ -66,7 +66,7 @@ class DraftLaw(models.Model):
 
     def update(self):
         ''' method updates draft, if anything has changed'''
-        *__, span, h = parse(self.url)
+        *__, span, h, t = parse(self.url)
 
         if self.span != span:
             self.span = span

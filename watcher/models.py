@@ -33,6 +33,12 @@ class DraftLaw(models.Model):
     def __str__(self):
         return self.number
 
+    def save(self, *args, **kwargs):
+        if not self.pk:  # object is being created, thus no primary key field yet
+            self.make_url()
+            self.populate()
+        super(DraftLaw, self).save(*args, **kwargs)
+        
     def serialize_history(self, h):
         return "@".join(
                 ["|".join([piece for piece in line]) for line in h])

@@ -90,19 +90,13 @@ def add_draft(request):
 
         if form.is_valid():  # FIXME: deal with not authorised users
             x = form.cleaned_data['number']
-            draft, created = DraftLaw.objects.get_or_create(number=x)
-            
-            if created:
-                try:
-                    draft.make_url()
-                    draft.populate()
-                    draft.save()
-                except DraftLawNotFound:
-                    draft.delete()
-                    form._errors["number"] = form.error_class(
+            try:
+                draft, created = DraftLaw.objects.get_or_create(number=x)
+            except:
+                form._errors["number"] = form.error_class(
                             ['Законопроект не найден'])
-                    return render_to_response('watcher/add_draft.html',
-                            context_dict, context)
+                return render_to_response('watcher/add_draft.html',
+                        context_dict, context)
             return add_draft_to_user(request, draft.number)
         else:
             return render_to_response('watcher/add_draft.html',

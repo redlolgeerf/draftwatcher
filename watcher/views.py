@@ -27,7 +27,7 @@ def index(request):
     context_dict = {}
 
     if request.user.is_authenticated():
-        drafts = request.user.userprofile.get_user_drafts()
+        drafts = request.user.userprofile.get_user_drafts().order_by('-updated')
 
         if drafts:
             context_dict['userdrafts'] = drafts

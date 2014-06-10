@@ -10,6 +10,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+from django.views.generic import ListView
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -38,18 +39,16 @@ def index(request):
     return render_to_response('watcher/index.html',
                               context_dict, context)
 
-def all_drafts(request):
-    context = RequestContext(request)
-    context_dict = {}
+class AllDraftsList(ListView):
+    queryset = DraftLaw.objects.order_by('-updated')
+    context_object_name = 'drafts'
+    template_name = 'watcher/all_drafts.html'
 
-    drafts = DraftLaw.objects.order_by('-updated')
-    context_dict['drafts'] = drafts
-
-    if request.user.is_authenticated():
-        context_dict['userdrafts'] = request.user.userprofile.get_user_drafts()
-
-    return render_to_response('watcher/all_drafts.html',
-                              context_dict, context)
+    def get_context_data(self, **kwargs):
+        context = super(AllDraftsList, self).get_context_data(**kwargs)
+        if self.request.user.is_authenticated():
+            context['userdrafts'] = self.request.user.userprofile.get_user_drafts()
+        return context
 
 def detail(request, draft_number):
     ''' detail view

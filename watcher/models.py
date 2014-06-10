@@ -44,20 +44,23 @@ class DraftLaw(models.Model):
         magic_url = 'asozd2.duma.gov.ru/main.nsf/(Spravka)?OpenAgent&RN='
         self.url = 'http://' + magic_url + self.number
 
+    def archive(self):
+        if 'в архиве' in self.span.lower():
+            self.archived = True
+
     def populate(self):
         ''' method which downloads a respective page, parse it and populate
         db with draft law atributes'''
         try:
-            self.number, self.title, self.span, h, t = parse(self.url)
-            if 'в архиве' in self.span.lower():
-                self.archived = True
+            self.number, self.title, self.span, h, t = self.parse(self.url)
 
+            self.archive()
             self.updated = timezone.now()
             self.date_updated = timezone.now()
 
             if h:
                 self.curent_status = h[-1][0]
-            self.history = self.serialize_history(h)
+                self.history = self.serialize_history(h)
 
             if t:
                 self.text_url = t
@@ -66,22 +69,101 @@ class DraftLaw(models.Model):
 
     def update(self):
         ''' method updates draft, if anything has changed'''
-        *__, span, h, t = parse(self.url)
+        *__, self.span, h, t = self.parse(self.url)
 
-        if self.span != span:
-            self.span = span
-
+        self.archive()
         if (self.history and 
                 (self.deserialize_history() != h) or
                 not self.history):
-            self.serialize_history(h)
+            self.history = self.serialize_history(h)
             self.curent_status = h[-1][0]
             self.updated = timezone.now()
+            if t:
+                self.text_url = t
             try:
                 self.notify_users()
             except:
                 pass
         self.date_updated = timezone.now()
+
+    def parse_header(self, h):
+        number = crop_between(h.h2.text, '№')
+
+        if h.p.span:
+            status = h.p.span.text
+            status = status.strip()
+        else:
+            status = None
+        if status:
+            name = h.p.text.replace('\n', ' ')
+            name = name.replace(status, '')
+        else:
+            name = h.p.text.replace('\n', ' ')
+        name = name.strip()
+
+        return number, name, status
+
+    def parse_history(self, hb):
+        '''
+        we will cycle through the table of tables and save main headers
+        together with latest updates for them and date
+        '''
+
+        history_header = hb.find_all('div', class_='data-block-show')
+        history_block = hb.find_all('div', class_='data-block-doc data-block')
+
+        history = []
+        text_url = ''
+
+        for i, y in zip(history_header, history_block):
+            if i.text.startswith('Регистрация'):
+                # I just don't need this part
+                pass
+            else:
+                # we use result both as flag to stop iteration
+                # and as a list to store data
+                result = []
+                history_sub_block = y.find_all('table', class_='data-block-table nb tb-nb')
+                # need to cycle backwards to grab only the freshst piece
+                for z in reversed(history_sub_block):
+                # if at this moment result is not empty, 
+                # break, because we already have fresher data
+                    if result:
+                        break
+                    history_line = z.find_all('tr')
+                    for x in reversed(history_line):
+                        collumns = x.find_all('td')
+                        if not text_url:
+                            if collumns[0].a:
+                                if 'Текст' in collumns[0].a.text:
+                                    text_url = collumns[0].a.get('href')
+                                    text_url = 'http://asozd2.duma.gov.ru' + text_url
+                # we need a row with date in second collumn
+                        if collumns[1].text.strip():
+                            result.append(crop_between(i.text.strip(), stop = ','))
+                            result.append(crop_between(collumns[0].text, stop = '(')) # FIXME <br /> glues words (look at 466627-6)
+                            result.append(crop_between(collumns[1].text, stop =' '))
+                            break
+                if result:
+                    history.append(result)
+        return history, text_url
+
+    def download(self, uri):
+        html_doc = requests.get(uri)
+        html_doc.encoding = 'cp1251'
+        html_doc = html_doc.text
+        return html_doc
+
+    def parse(self, uri):
+        page = self.download(uri)
+        soup = BeautifulSoup(page)
+        header = soup.find('div', class_='ecard-header')
+        history_box = soup.find('div', class_='tab tab-act')
+
+        title, number, status = self.parse_header(header)
+        history, text_url = self.parse_history(history_box)
+
+        return title, number, status, history, text_url
 
     def notify_users(self):
         users_to_notify = self.userprofile_set.all()
@@ -261,81 +343,3 @@ def crop_between(text, start=None, stop=None):
         return text[a+1: b].strip()
     return text[a+1: ].strip()
 
-def parse_header(h):
-    number = crop_between(h.h2.text, '№')
-
-    if h.p.span:
-        status = h.p.span.text
-        status = status.strip()
-    else:
-        status = None
-    if status:
-        name = h.p.text.replace('\n', ' ')
-        name = name.replace(status, '')
-    else:
-        name = h.p.text.replace('\n', ' ')
-    name = name.strip()
-
-    return number, name, status
-
-def parse_history(hb):
-    '''
-    we will cycle through the table of tables and save main headers
-    together with latest updates for them and date
-    '''
-
-    history_header = hb.find_all('div', class_='data-block-show')
-    history_block = hb.find_all('div', class_='data-block-doc data-block')
-
-    history = []
-    text_url = ''
-
-    for i, y in zip(history_header, history_block):
-        if i.text.startswith('Регистрация'):
-            # I just don't need this part
-            pass
-        else:
-            # we use result both as flag to stop iteration
-            # and as a list to store data
-            result = []
-            history_sub_block = y.find_all('table', class_='data-block-table nb tb-nb')
-            # need to cycle backwards to grab only the freshst piece
-            for z in reversed(history_sub_block):
-            # if at this moment result is not empty, 
-            # break, because we already have fresher data
-                if result:
-                    break
-                history_line = z.find_all('tr')
-                for x in reversed(history_line):
-                    collumns = x.find_all('td')
-                    if not text_url:
-                        if collumns[0].a:
-                            if 'Текст' in collumns[0].a.text:
-                                text_url = collumns[0].a.get('href')
-                                text_url = 'http://asozd2.duma.gov.ru' + text_url
-            # we need a row with date in second collumn
-                    if collumns[1].text.strip():
-                        result.append(crop_between(i.text.strip(), stop = ','))
-                        result.append(crop_between(collumns[0].text, stop = '(')) # FIXME <br /> glues words (look at 466627-6)
-                        result.append(crop_between(collumns[1].text, stop =' '))
-                        break
-            if result:
-                history.append(result)
-    return history, text_url
-
-def download(uri):
-    html_doc = requests.get(uri)
-    html_doc.encoding = 'cp1251'
-    html_doc = html_doc.text
-    return html_doc
-
-def parse(uri):
-    page = download(uri)
-    soup = BeautifulSoup(page)
-    header = soup.find('div', class_='ecard-header')
-    history_box = soup.find('div', class_='tab tab-act')
-
-    title, number, status = parse_header(header)
-    history, text_url = parse_history(history_box)
-
-    return title, number, status, history, text_url

@@ -13,7 +13,9 @@
                     {% endfor %}
                     <input id="id_email" type="email" class="form-control" value="{{ email }}" name="email" autofocus>
                 </div>
+                {% if request.user.userprofile.email_verified %}
                 <a href="/send_verification/" class="btn btn-lg btn-primary">Подтвердить email</a>
+                {% endif %}
                 <div class="form-group {% if user_form.notify.errors %}has-error{% endif %}">
                     {% for error in user_form.notify.errors %}
                     <span class="help-block">{{ error }}</span>

@@ -1,12 +1,9 @@
 from bs4 import BeautifulSoup
+import os
 from django.test import TestCase
 from django.core import mail
 from watcher.models import DraftLaw, UserProfile, User
-from watcher.models import (
-        crop_between,
-        parse_header,
-        parse_history,
-        )
+from watcher.models import crop_between
 
 def generate_user():
     us = User(username='test', email='test@test.ru')
@@ -319,6 +316,15 @@ test_input_history = '''
                                 ''' # '''
 
 
+class TestDraftLaw(DraftLaw):
+    '''
+    DraftLaw class with overriden download method
+    '''
+    def download(self, uri):
+        with open(os.path.join('test_pages', self.number+'.htm'), 'r', encoding='cp1251') as f:
+            html_doc = f.read()
+        return html_doc
+
 class UtilsTests(TestCase):
 
     def test_crop_between(self):
@@ -329,16 +335,18 @@ class UtilsTests(TestCase):
         self.assertEqual(crop_between(s, start=' ', stop='!'), 'привет')
 
     def test_parse_header(self):
+        Dummy = DraftLaw()
         test_input = BeautifulSoup(test_input_header)
-        self.assertEqual(parse_header(test_input), 
+        self.assertEqual(Dummy.parse_header(test_input), 
             ('413886-6',
              'О внесении изменений в Федеральный закон "Об организации и о проведении XXII Олимпийских зимних игр и XI Паралимпийских зимних игр 2014 года в городе Сочи, развитии города Сочи как горноклиматического курорта и внесении изменений в отдельные законодательные акты Российской Федерации" (в части распоряжения Олимпийскими объектами федерального значения)',
              'находится на рассмотрении')
                         )
 
     def test_parse_history(self):
+        Dummy = DraftLaw()
         test_input = BeautifulSoup(test_input_history)
-        self.assertEqual(parse_history(test_input), (
+        self.assertEqual(Dummy.parse_history(test_input), (
                 [['Внесение законопроекта в Государственную Думу',
                     'направлен в Комитет Государственной Думы по вопросам собственности',
                     '23.12.2013'],
@@ -370,11 +378,12 @@ class UserProfileTests(TestCase):
 
 class DraftLawTests(TestCase):
 
+    DummyLaw = TestDraftLaw()
     test_input = BeautifulSoup(test_input_header)
-    number, name, status = parse_header(test_input)
+    number, name, status = DummyLaw.parse_header(test_input)
     test_input = BeautifulSoup(test_input_history)
-    history, text_url = parse_history(test_input)
-    TestDraft = DraftLaw(
+    history, text_url = DummyLaw.parse_history(test_input)
+    TestDraft = TestDraftLaw(
             number=number, title=name, span=status,
             curent_status=history[-1][0],
             )
@@ -389,3 +398,25 @@ class DraftLawTests(TestCase):
         self.TestDraft.history = serialized
         deserialized = self.TestDraft.deserialize_history()
         self.assertEqual(deserialized, hist)
+
+    def test_populate(self):
+        DummyLaw = TestDraftLaw(number='320066-6')
+        DummyLaw.make_url()
+        DummyLaw.populate()
+        self.assertEqual(DummyLaw.history, 'Внесение законопроекта в Государственную Думу|направлен в Комитет Государственной Думы по финансовому рынку|23.07.2013@Предварительное рассмотрение законопроекта|назначить ответственный комитет|09.09.2013@Рассмотрение законопроекта в первом чтении|принять законопроект в первом чтении; представить поправки к законопроекту в тридцатидневный срок со дня принятия постановления|23.10.2013@Рассмотрение законопроекта во втором чтении|принять законопроект во втором чтении|21.05.2014@Рассмотрение законопроекта в третьем чтении|принять закон|23.05.2014@Прохождение закона в Совете Федерации|закон одобреннаправлен Президенту РФсоответствующее уведомление направлено в ГД|28.05.2014@Прохождение закона у Президента Российской Федерации|Российская газета|06.06.2014')
+        self.assertEqual(DummyLaw.curent_status, 'Прохождение закона у Президента Российской Федерации')
+        self.assertEqual(DummyLaw.archived, True)
+        self.assertEqual(DummyLaw.span, 'находится в архиве')
+        self.assertEqual(DummyLaw.title, 'О внесении изменений в Закон Российской Федерации "Об организации страхового дела в Российской Федерации" и отдельные законодательные акты Российской Федерации (в части определения порядка заключения договора страхования в форме электронного документа)')
+        self.assertEqual(DummyLaw.text_url, 'http://asozd2.duma.gov.ru/work/dz.nsf/ByID/16446E932FE8E9CC43257C12003578A4/$File/ЗАКОН.rtf?OpenElement')
+
+    def test_update(self):
+        self.maxDiff = None
+        DummyLaw = TestDraftLaw(number='320066-6')
+        DummyLaw.make_url()
+        DummyLaw.update()
+        self.assertEqual(DummyLaw.history, 'Внесение законопроекта в Государственную Думу|направлен в Комитет Государственной Думы по финансовому рынку|23.07.2013@Предварительное рассмотрение законопроекта|назначить ответственный комитет|09.09.2013@Рассмотрение законопроекта в первом чтении|принять законопроект в первом чтении; представить поправки к законопроекту в тридцатидневный срок со дня принятия постановления|23.10.2013@Рассмотрение законопроекта во втором чтении|принять законопроект во втором чтении|21.05.2014@Рассмотрение законопроекта в третьем чтении|принять закон|23.05.2014@Прохождение закона в Совете Федерации|закон одобреннаправлен Президенту РФсоответствующее уведомление направлено в ГД|28.05.2014@Прохождение закона у Президента Российской Федерации|Российская газета|06.06.2014')
+        self.assertEqual(DummyLaw.curent_status, 'Прохождение закона у Президента Российской Федерации')
+        self.assertEqual(DummyLaw.span, 'находится в архиве')
+        self.assertEqual(DummyLaw.archived, True)
+        self.assertEqual(DummyLaw.text_url, 'http://asozd2.duma.gov.ru/work/dz.nsf/ByID/16446E932FE8E9CC43257C12003578A4/$File/ЗАКОН.rtf?OpenElement')

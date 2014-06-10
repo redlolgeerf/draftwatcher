@@ -42,7 +42,7 @@
         {% if user.is_authenticated %}
             <p>Чтобы начать, пожалуйста, <a href="/add_draft/">добавьте</a> или <a href="/all_drafts/">выберите</a> из уже добавленных пользователями.</p>
             {% else %}
-            <p>Чтобы начать, пожалуйста, <a href="/register/">зарегистрируйтесь</a>.</p>
+            <p>Чтобы начать, пожалуйста, <a href="/login/">войдите</a> или <a href="/register/">зарегистрируйтесь</a>.</p>
         {% endif %}
     {% endif %}
 {% endblock %}

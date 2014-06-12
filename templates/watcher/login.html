@@ -8,7 +8,11 @@
     <p><strong>Your watcher account is currently disabled; we can't log you in!</strong></p>
     {% endif %}
 
-    <form id="login_form" method="post" action="/login/" role="form">
+    <form id="login_form" method="post" action="/login/
+        {% if next %}
+        ?next_={{next_}}
+        {% endif %}
+        " role="form">
     {% csrf_token %}
       <h2 class="form-signin-heading">Авторизоваться</h2>
     <div class="row">

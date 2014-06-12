@@ -65,7 +65,7 @@ class DraftLaw(models.Model):
             self.date_updated = timezone.now()
 
             if h:
-                self.curent_status = h[-1][0]
+                self.curent_status = " - ".join(h[-1])
                 self.history = self.serialize_history(h)
 
             if t:
@@ -82,7 +82,7 @@ class DraftLaw(models.Model):
                 (self.deserialize_history() != h) or
                 not self.history):
             self.history = self.serialize_history(h)
-            self.curent_status = h[-1][0]
+            self.curent_status = " - ".join(h[-1])
             self.updated = timezone.now()
             if t:
                 self.text_url = t

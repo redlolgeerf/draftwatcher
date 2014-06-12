@@ -30,6 +30,10 @@ class DraftLaw(models.Model):
     archived = models.BooleanField(default=False)
     history = models.TextField(blank=True)
 
+    class Meta:
+        verbose_name = 'законопроект'
+        verbose_name_plural = 'законопроекты'
+
     def __str__(self):
         return self.number
 
@@ -203,6 +207,10 @@ class UserProfile(models.Model):
     notify = models.BooleanField(default=False)
     password_restore_key = models.CharField(max_length=300, blank=True)
 
+    class Meta:
+        verbose_name = 'профиль'
+        verbose_name_plural = 'профили'
+
     def __str__(self):
         return self.user.username
 
@@ -326,6 +334,10 @@ class UserData(models.Model):
     comment = models.TextField(blank=True)
     date_added = models.DateTimeField(default=timezone.now(), blank=True)
     watched = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'пользовательская информация'
+        verbose_name_plural = 'пользовательская информация'
 
     def __str__(self):
         return (self.userprofile.user.username + " " + self.draftlaw.number)

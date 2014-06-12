@@ -10,7 +10,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -49,6 +49,45 @@ class AllDraftsList(ListView):
         if self.request.user.is_authenticated():
             context['userdrafts'] = self.request.user.userprofile.get_user_drafts()
         return context
+
+class DraftLawDetailView(DetailView):
+    model = DraftLaw
+    slug_field = 'number'
+    template_name = 'watcher/detail.html'
+    context_object_name = 'draft'
+    form_class = AddCommentForm
+
+    def get_context_data(self, **kwargs):
+        context = super(DraftLawDetailView, self).get_context_data(**kwargs)
+        context['history'] = self.object.deserialize_history()
+        if self.request.user.is_authenticated():
+            userprofile = self.request.user.userprofile
+            context['userdrafts'] = userprofile.get_user_drafts()
+            context['comment'] = userprofile.get_comment(self.object)
+        return context
+
+    def form_valid(self, form):
+        comment = form.cleaned_data['comment']
+        self.request.user.userprofile.add_comment(self.object, comment)
+        return redirect('detail', slug=self.object.number)
+
+    def form_invalid(self, form):
+        return redirect('detail', slug=self.object.number)
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        context['form'] = form
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        self.object = self.get_object()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
 
 def detail(request, draft_number):
     ''' detail view
@@ -285,7 +324,7 @@ def add_draft_to_user(request, draft_number):
     userprofile = request.user.userprofile
     draf = DraftLaw.objects.get(number=draft_number)
     x = UserData.objects.get_or_create(userprofile=userprofile, draftlaw=draf)
-    return redirect('detail', draft_number=draft_number)
+    return redirect('detail', slug=draft_number)
 
 @login_required
 def release_user_from_draft(request, draft_number):

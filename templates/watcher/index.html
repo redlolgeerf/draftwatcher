@@ -32,6 +32,9 @@
                             </div>
                         </div>
                     </div><!-- row -->
+                    {% if draft.2 %}
+                    <p class="list-group-item-text">Ваш комментарий: <em>{{ draft.2 }}</em</p>
+                    {% endif %}
                 </div><!-- list-group-item -->
             </div><!-- list-group-item -->
             {% endfor %}

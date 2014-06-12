@@ -41,7 +41,6 @@
       </div>
     {% endif %}
     
-    <!--
     {% if user.is_authenticated and draft in userdrafts %}
 
         <form id="add_comment_form" method="post" action="/draft/{{ draft.number }}/">
@@ -53,13 +52,20 @@
         {% for field in form.visible_fields %}
             {{ field.errors }}
             {{ field.help_text }}<br/>
-            {{ field }}<br />
         {% endfor %}
+        <textarea cols="40" id="id_comment" name="comment" rows="3" disabled="true" style="background-color : #d1d1d1;">{{comment}}
+</textarea>
 
         <br/>
-        <button class="btn btn-xs btn-primary" type="submit" name="submit">Добавить комментарий</button>
     </form>
+
+<button id="editcomment" class="btn btn-xs btn-primary" name="submit" type="submit">
+{% if comment %}
+Редактировать комментарий
+{% else %}
+Добавить комментарий
+{% endif %}
+</button>
     {% endif %}
-    -->
 
 {% endblock %}

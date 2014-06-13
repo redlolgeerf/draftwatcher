@@ -41,6 +41,7 @@
         </div><!-- list-group -->
         </div><!-- /.col-sm-8 -->
     {% else %}
+        {% include 'watcher/about.html' %}
         <p>Вы пока не отслеживаете не один законопроект.<br /></p>
         {% if user.is_authenticated %}
             <p>Чтобы начать, пожалуйста, <a href="/add_draft/">добавьте</a> или <a href="/all_drafts/">выберите</a> из уже добавленных пользователями.</p>

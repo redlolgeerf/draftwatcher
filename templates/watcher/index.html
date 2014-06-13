@@ -33,7 +33,7 @@
                         </div>
                     </div><!-- row -->
                     {% if draft.2 %}
-                    <p class="list-group-item-text">Ваш комментарий: <em>{{ draft.2 }}</em</p>
+                    <p class="list-group-item-text">Ваш комментарий: <em>{{ draft.2 }}</em></p>
                     {% endif %}
                 </div><!-- list-group-item -->
             </div><!-- list-group-item -->
@@ -46,7 +46,7 @@
         {% if user.is_authenticated %}
             <p>Чтобы начать, пожалуйста, <a href="/add_draft/">добавьте</a> или <a href="/all_drafts/">выберите</a> из уже добавленных пользователями.</p>
             {% else %}
-            <p>Чтобы начать, пожалуйста, <a href="/register/">зарегистрируйтесь</a>.</p>
+            <p>Чтобы начать, пожалуйста, <a href="/login/">войдите</a> или <a href="/register/">зарегистрируйтесь</a>.</p>
         {% endif %}
     {% endif %}
 {% endblock %}

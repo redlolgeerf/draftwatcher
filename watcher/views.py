@@ -197,11 +197,16 @@ def user_login(request):
         if user:
             if user.is_active:
                 login(request, user)
+                next_ = request.POST.get('next')
+                if next_:
+                    return redirect(next_)
                 return redirect('index')
             else:
                 return HttpResponse('Ваш аккаунт неактивен')
         else:
             context_dict['error'] = 'Неверная пара логин/пароль'
+    else:
+        context_dict['next'] = request.GET.get('next')
     return render_to_response('watcher/login.html', context_dict, context)
 
 @login_required

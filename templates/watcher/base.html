@@ -75,10 +75,29 @@
       </div>
     </div>
 
+     <div class="row">
+
+    <div class="col-md-10" role="main">
     <div class="container">
     {% block body_block %}{% endblock %}
     </div>
+    </div><!--col-->
 
+     <div class="col-md-2">
+          <div class="bs-docs-sidebar hidden-print" role="complementary">
+            <div class="panel panel-default">
+                  <div class="panel-heading">Недавно просмотренные законопроекты</div>
+                      <div class="panel-body">
+                      {% for dr in recently_visited %}
+                          <p><a href="/draft/{{dr}}">{{dr}}</a></p>
+                      {% endfor %}
+                      </div>
+                  </div>
+            </div>
+          </div>
+    </div><!--col-->
+    
+    </div><!--row-->
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

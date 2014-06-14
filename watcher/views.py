@@ -4,6 +4,7 @@
 
 import sys
 
+from django.db import models
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 
@@ -21,25 +22,18 @@ from watcher.models import DraftLawNotFound
 from watcher.forms import AddDraftForm, RegisterForm, AddCommentForm, ProfileForm, RestorePasswordForm
 
 
-def index(request):
-    ''' index page
-        shows a list of all drawft laws '''
-    context = RequestContext(request)
-    context_dict = {}
+class MainPage(ListView):
+    template_name = 'watcher/index.html'
 
-    if request.user.is_authenticated():
-        drafts = request.user.userprofile.get_user_drafts().order_by('-updated')
+    def get_queryset(self):
+        pass
 
-        if drafts:
-            context_dict['userdrafts'] = drafts
-            watched = [request.user.userprofile.is_watched(draft)
-                    for draft in drafts]
-            comments = [request.user.userprofile.get_comment(draft) 
-                    for draft in drafts]
-            context_dict['drafts'] = zip(drafts, watched, comments)
-
-    return render_to_response('watcher/index.html',
-                              context_dict, context)
+    def get_context_data(self, **kwargs):
+        context = super(MainPage, self).get_context_data(**kwargs)
+        context['most_watched'] = DraftLaw.objects.annotate(
+                nums=models.Count('userprofile')).order_by('-nums')[:5]
+        context['recently_updated'] = DraftLaw.objects.order_by('-updated')[:5]
+        return context
 
 class UserDraftsList(ListView):
     template_name = 'watcher/userdrafts.html'

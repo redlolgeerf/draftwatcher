@@ -2,51 +2,41 @@
 
 {% block body_block %}
 
-    {% if drafts %}
-        <div class="col-sm-12">
-        <div class="list-group">
-            {% for draft in drafts %}
-            <div class='list-group-item'>
-                <div class="row">
-                    <div class="col-xs-10">
-                        <a href="/draft/{{ draft.0.number }}/" class="list-group-item">
-                          <h4 class="list-group-item-heading">Законопроект № {{ draft.0.number }}</h4>
-                        </a>
-                    </div>
-                    <div class="col-xs-2">
-                        {% if user.is_authenticated %}
-                            {% if draft.0 in userdrafts %}
-                            <a href="/release_user_from_draft/{{ draft.0.number }}/" class="btn btn-warning pull-right">Отписаться</a>
-                            {% else %}
-                            <a href="/add_draft_to_user/{{ draft.0.number }}/" class="btn btn-success pull-right">Подписаться</a>
-                            {% endif %}
-                        {% endif %}
-                    </div><!-- coll-xs-5 -->
-                </div><!-- row -->
-                <div class="list-group-item">
-                    <p class="list-group-item-text">{{ draft.0.title }}</p>
-                    <div class="row">
-                        <div class="col-xs-8">
-                            <div class="list-group-item-text alert {% if draft.1 %}alert-success{% endif %}">
-                                <strong>{{ draft.0.curent_status }}</strong>
-                            </div>
-                        </div>
-                    </div><!-- row -->
-                    {% if draft.2 %}
-                    <p class="list-group-item-text">Ваш комментарий: <em>{{ draft.2 }}</em></p>
-                    {% endif %}
-                </div><!-- list-group-item -->
-            </div><!-- list-group-item -->
-            {% endfor %}
-        </div><!-- list-group -->
-        </div><!-- /.col-sm-8 -->
-    {% else %}
-        {% include 'watcher/about.html' %}
-        <p>Вы пока не отслеживаете ни один законопроект.<br /></p>
-        {% if user.is_authenticated %}
-            <p>Чтобы начать, пожалуйста, <a href="/add_draft/">добавьте</a> или <a href="/all_drafts/">выберите</a> из уже добавленных пользователями.</p>
-            {% else %}
-            <p>Чтобы начать, пожалуйста, <a href="/login/">войдите</a> или <a href="/register/">зарегистрируйтесь</a>.</p>
-        {% endif %}
-    {% endif %}
+ <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <h1>Закономонитор</h1>
+        <p>это сайт для слежения за изменениями статусов законопроектов,
+        внесённых в Государственную Думу Российской Федерации. Все законопроекты можно
+        найти на сайте <a href="http://asozd2.duma.gov.ru/">
+            Автоматизированной системы обеспечения законодательной деятельности</a>.</p>
+        <hr>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="col-md-6">
+          <h2>Недавно обновившиеся</h2>
+          <ul class="list-group">
+          {% for draft in recently_updated %}
+          <li class="list-group-item"><a href="/draft/{{draft.number}}">{{draft.number}}</a> <abbr title="{{draft.title}}">{{draft.title|truncatechars:100}}</abbr</li>
+          {% endfor %}
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <h2>Самые популярные</h2>
+          <ul class="list-group">
+          {% for draft in most_watched %}
+          <li class="list-group-item"><a href="/draft/{{draft.number}}">{{draft.number}}</a> <abbr title="{{draft.title}}">{{draft.title|truncatechars:100}}</abbr</li>
+          {% endfor %}
+          </ul>
+          <p></p>
+       </div>
+      </div>
+
+      <hr>
+
+    </div> <!-- /container -->
 {% endblock %}

@@ -12,11 +12,6 @@ def populate():
         try:
             print('populating draft %s' % draft)
             x, created = DraftLaw.objects.get_or_create(number=draft)
-            if created:
-                x.make_url()
-                x.populate()
-            else:
-                x.update()
             x.save()
         except:
             e = sys.exc_info()[0]

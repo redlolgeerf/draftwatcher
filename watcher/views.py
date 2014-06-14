@@ -41,6 +41,26 @@ def index(request):
     return render_to_response('watcher/index.html',
                               context_dict, context)
 
+class UserDraftsList(ListView):
+    template_name = 'watcher/userdrafts.html'
+
+    def get_queryset(self):
+        self.user = get_object_or_404(User, username=self.args[0])
+        return DraftLaw.objects.filter(userprofile__user=self.user).order_by('-updated')
+        
+    def get_context_data(self, **kwargs):
+        context = super(UserDraftsList, self).get_context_data(**kwargs)
+        if self.request.user.is_authenticated():
+            drafts = self.get_queryset()
+            userprofile = self.request.user.userprofile
+            context['userdrafts'] = userprofile.get_user_drafts() # .order_by('-updated')
+            watched = [userprofile.is_watched(draft)
+                    for draft in drafts]
+            comments = [userprofile.get_comment(draft) 
+                    for draft in drafts]
+            context['drafts'] = zip(drafts, watched, comments)
+        return context
+
 class AllDraftsList(ListView):
     queryset = DraftLaw.objects.order_by('-updated')
     context_object_name = 'drafts'

@@ -37,6 +37,9 @@
         {% if user.is_authenticated %}
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
+            <li><a href="/drafts/{{user.username}}/">Мои законопроекты</a></li>
+          </ul>
+          <ul class="nav navbar-nav">
             <li><a href="/all_drafts/">Все законопроекты</a></li>
           </ul>
 

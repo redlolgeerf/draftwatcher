@@ -7,6 +7,7 @@ from watcher import views
 
 urlpatterns = patterns('',
         url(r'^$', views.index, name='index'),
+        url(r'^drafts/([\w-]+)/$', views.UserDraftsList.as_view() , name='user_drafts'),
         url(r'^all_drafts/$', views.AllDraftsList.as_view() , name='all_drafts'),
         #url(r'^draft/(?P<draft_number>\d+-\d)/$', views.detail, name='detail'),
         url(r'^draft/(?P<slug>\d+-\d)/$', views.DraftLawDetailView.as_view(), name='detail'),

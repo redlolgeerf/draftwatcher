@@ -30,6 +30,12 @@ class RegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(), help_text="Пароль")
     password_repeat = forms.CharField(widget=forms.PasswordInput(), help_text="Введите пароль ещё раз")
 
+    def clean_username(self):
+        data = self.cleaned_data['username']
+        if not re.search(r'^[\w-]+$', data):
+            raise forms.ValidationError("Имя пользователя содержит недопустимые символы")
+        return data
+
     def clean_email(self):
         data = self.cleaned_data['email']
         try:

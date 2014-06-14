@@ -3,6 +3,7 @@
 ''' view module '''
 
 import sys
+import re
 
 from django.db import models
 from django.utils import timezone
@@ -22,6 +23,38 @@ from watcher.models import DraftLawNotFound
 from watcher.forms import AddDraftForm, RegisterForm, AddCommentForm, ProfileForm, RestorePasswordForm
 
 
+class RecentlyVisited(object):
+    delimeter = '|'
+
+# from cookies we read like '12345-5,112343-6,12412-5'
+    def __init__(self, stuf):
+        self.recently_visited = []
+        if stuf:
+            recently_visited = stuf.split(self.delimeter)
+            self.recently_visited = [r for 
+                    r in recently_visited if self.validate(r)]
+
+    def validate(self, s):
+        if re.search(r'^\d{5,6}-\d$', s):
+            return True
+        return False
+
+    def add_to(self, s):
+        result = self.recently_visited
+        if self.validate(s):
+            if not (s in self.recently_visited):
+                if len(result) >= 10:
+                    result = [s] + result[:-1]
+                else:
+                    result = [s] + result
+            else:
+                x = result.index(s)
+                result = [s] + result[:x] + result[x+1:]
+        self.recently_visited = result
+
+    def to_cookie(self):
+        return self.delimeter.join(self.recently_visited)
+
 class MainPage(ListView):
     template_name = 'watcher/index.html'
 
@@ -33,6 +66,8 @@ class MainPage(ListView):
         context['most_watched'] = DraftLaw.objects.annotate(
                 nums=models.Count('userprofile')).order_by('-nums')[:5]
         context['recently_updated'] = DraftLaw.objects.order_by('-updated')[:5]
+        self.rv = RecentlyVisited(self.request.COOKIES.get('recently_visited'))
+        context['recently_visited'] = self.rv.recently_visited
         return context
 
 class UserDraftsList(ListView):
@@ -53,6 +88,8 @@ class UserDraftsList(ListView):
             comments = [userprofile.get_comment(draft) 
                     for draft in drafts]
             context['drafts'] = zip(drafts, watched, comments)
+            self.rv = RecentlyVisited(self.request.COOKIES.get('recently_visited'))
+            context['recently_visited'] = self.rv.recently_visited
         return context
 
 class AllDraftsList(ListView):
@@ -64,6 +101,8 @@ class AllDraftsList(ListView):
         context = super(AllDraftsList, self).get_context_data(**kwargs)
         if self.request.user.is_authenticated():
             context['userdrafts'] = self.request.user.userprofile.get_user_drafts()
+        self.rv = RecentlyVisited(self.request.COOKIES.get('recently_visited'))
+        context['recently_visited'] = self.rv.recently_visited
         return context
 
 class DraftLawDetailView(DetailView):
@@ -76,6 +115,8 @@ class DraftLawDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(DraftLawDetailView, self).get_context_data(**kwargs)
         context['history'] = self.object.deserialize_history()
+        self.rv = RecentlyVisited(self.request.COOKIES.get('recently_visited'))
+        context['recently_visited'] = self.rv.recently_visited
         if self.request.user.is_authenticated():
             userprofile = self.request.user.userprofile
             context['userdrafts'] = userprofile.get_user_drafts()
@@ -105,33 +146,12 @@ class DraftLawDetailView(DetailView):
         else:
             return self.form_invalid(form)
 
-def detail(request, draft_number):
-    ''' detail view
-        shows attributes of a particular drawft law '''
-    context = RequestContext(request)
-    context_dict = {}
-
-    draft = get_object_or_404(DraftLaw, number=draft_number)
-
-    if request.user.is_authenticated():
-        request.user.userprofile.watch(draft)
-        context_dict['userdrafts'] = request.user.userprofile.get_user_drafts()
-
-    context_dict['draft'] = draft
-    context_dict['history'] = draft.deserialize_history()
-
-#     if request.method == 'POST':
-#         form = AddCommentForm(request.POST)
-#         context_dict['form'] = form
-#         if form.is_valid():
-#             comment = form.cleaned_data['comment']
-#             request.user.userprofile.add_comment(draft, comment)
-#     else:
-#         comment = request.user.userprofile.get_comment(draft)
-#         form = AddCommentForm({'comment': comment})
-#         context_dict['form'] = form
-    return render_to_response('watcher/detail.html',
-                              context_dict, context)
+    def render_to_response(self, context, **response_kwargs):
+        response = super(DraftLawDetailView, self).render_to_response(context, **response_kwargs)
+        self.rv.add_to(self.object.number)
+        response.set_cookie('recently_visited', self.rv.to_cookie(), 
+                max_age=3600*365*24)
+        return response
 
 def add_draft(request):
     context = RequestContext(request)

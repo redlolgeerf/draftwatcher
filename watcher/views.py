@@ -55,7 +55,15 @@ class RecentlyVisited(object):
     def to_cookie(self):
         return self.delimeter.join(self.recently_visited)
 
-class MainPage(ListView):
+class PanelMixin(object):
+
+    def get_context_data(self, **kwargs):
+        context = super(PanelMixin, self).get_context_data(**kwargs)
+        self.rv = RecentlyVisited(self.request.COOKIES.get('recently_visited'))
+        context['recently_visited'] = self.rv.recently_visited
+        return context
+
+class MainPage(PanelMixin, ListView):
     template_name = 'watcher/index.html'
 
     def get_queryset(self):
@@ -66,11 +74,9 @@ class MainPage(ListView):
         context['most_watched'] = DraftLaw.objects.annotate(
                 nums=models.Count('userprofile')).order_by('-nums')[:5]
         context['recently_updated'] = DraftLaw.objects.order_by('-updated')[:5]
-        self.rv = RecentlyVisited(self.request.COOKIES.get('recently_visited'))
-        context['recently_visited'] = self.rv.recently_visited
         return context
 
-class UserDraftsList(ListView):
+class UserDraftsList(PanelMixin, ListView):
     template_name = 'watcher/userdrafts.html'
 
     def get_queryset(self):
@@ -88,11 +94,9 @@ class UserDraftsList(ListView):
             comments = [userprofile.get_comment(draft) 
                     for draft in drafts]
             context['drafts'] = zip(drafts, watched, comments)
-            self.rv = RecentlyVisited(self.request.COOKIES.get('recently_visited'))
-            context['recently_visited'] = self.rv.recently_visited
         return context
 
-class AllDraftsList(ListView):
+class AllDraftsList(PanelMixin, ListView):
     queryset = DraftLaw.objects.order_by('-updated')
     context_object_name = 'drafts'
     template_name = 'watcher/all_drafts.html'
@@ -101,8 +105,6 @@ class AllDraftsList(ListView):
         context = super(AllDraftsList, self).get_context_data(**kwargs)
         if self.request.user.is_authenticated():
             context['userdrafts'] = self.request.user.userprofile.get_user_drafts()
-        self.rv = RecentlyVisited(self.request.COOKIES.get('recently_visited'))
-        context['recently_visited'] = self.rv.recently_visited
         return context
 
 class DraftLawDetailView(DetailView):

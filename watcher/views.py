@@ -138,6 +138,9 @@ class DraftLawDetailView(DetailView):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
         context['form'] = form
+        # mark draftlaw as read
+        if self.request.user.is_authenticated():
+            request.user.userprofile.watch(self.object)
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
